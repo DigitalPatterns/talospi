@@ -8,7 +8,7 @@ The guides are deliberately opinionated and designed for use with our Talos Plat
 
 ### Setup Guide
 
-Please follow this link to the [Setup guides](docs/setup/README.md)
+Please follow this link to the [Setup guides](setup/README.md)
 
 
 (c) Digital Patterns Limited 2020
