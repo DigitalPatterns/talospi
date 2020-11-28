@@ -1,0 +1,51 @@
+clusterDomain: cluster.local
+
+postgresql:
+  replicas: 1
+  namespace: databases
+  image:
+    repository: arm64v8/postgres
+    # Overrides the image tag whose default is the chart version.
+    tag: "13"
+    pullPolicy: Always
+  restartPolicy: Always
+
+  securityContext:
+    fsGroup: 1000
+
+  containerSecurityContext:
+    runAsUser: 1000
+    runAsNonRoot: true
+
+  podLabels: {}
+  podAnnotations: {}
+  selectorLabels: {
+    disktype: ssd
+  }
+
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "10m"
+    limits:
+      memory: "256Mi"
+      cpu: "500m"
+
+  db:
+    password: "postgres"
+
+  ## Extra annotations to be added to statefulset
+  deploymenttAnnotations: {}
+
+  pv:
+    storage:
+      capacity: 5Gi
+      className: rook-ceph-block
+      path: /var/snap/microk8s/common/default-storage/
+
+  service:
+    annotations: {}
+    labels: {}
+    port: 5432
+    protocol: TCP
+    targetPort: 5432

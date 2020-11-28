@@ -1,0 +1,30 @@
+global:
+  enabled: true
+  tlsDisable: true
+injector:
+  enabled: false
+server:
+  ingress:
+    enabled: false
+  extraSecretEnvironmentVars:
+    - envName: CONSUL_TOKEN
+      secretName: vault
+      secretKey: consul
+  ha:
+    enabled: true
+    config: |
+      ui = true
+      max_lease_ttl = "8761h"
+      listener "tcp" {
+        address = "[::]:8200"
+        cluster_address = "[::]:8201"
+        tls_disable = "true"
+      }
+      storage "consul" {
+        path = "vault/"
+        address = "consul-server.databases.svc.cluster.local:8500"
+        scheme = "http"
+        token = "TOKEN_HERE"
+        tls_skip_verify = "true"
+      }
+      service_registration "kubernetes" {}
