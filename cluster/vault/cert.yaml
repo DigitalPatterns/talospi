@@ -1,0 +1,33 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: vault-pod-cert
+spec:
+  secretName: vault-pod-cert
+  duration: 2160h # 90d
+  renewBefore: 360h # 15d
+  isCA: false
+  issuerRef:
+    name: vault-issuer
+    kind: ClusterIssuer
+  usages:
+    - server auth
+    - client auth
+  commonName: "*.databases.svc.cluster.local"
+  dnsNames:
+    - vault.databases
+    - vault-0.databases
+    - vault-1.databases
+    - vault-2.databases
+    - vault.databases.svc
+    - vault-0.databases.svc
+    - vault-1.databases.svc
+    - vault-2.databases.svc
+    - vault.databases.svc.cluster.local
+    - vault-0.databases.svc.cluster.local
+    - vault-1.databases.svc.cluster.local
+    - vault-2.databases.svc.cluster.local
+    - localhost
+  ipAddresses:
+    - 127.0.0.1

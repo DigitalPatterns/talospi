@@ -41,13 +41,15 @@ These keys are sensitive and must be kept safe.
 You need to unlock each vault pod (This must be done on for every vault pod each time it restarts)
 
 1. Exec into each vault pod [0..2]
+
 ```bash
 kubectl -n databases exec -it vault-0 -- sh
 ```
 
-2. Execute the unlock command 3 times on each pod using a different unseal key from the output you got above each time
+2. Execute `unseal operator` command 3 times on each pod using a different unseal key from the output you got above each time
+
 ```bash
-vault operator unlock
+vault operator unseal
 ```
 
 (you can use the same unlock keys on different pods but must use a different one each time for the same pod to complete the unlock sequence)

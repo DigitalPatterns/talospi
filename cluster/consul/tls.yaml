@@ -259,7 +259,7 @@ server:
   # the attached volume. storageClass is the class of storage which defaults
   # to null (the Kube cluster will pick the default).
   storage: 10Gi
-  storageClass: null
+  storageClass: rook-ceph-block
 
   # connect will enable Connect on all the servers, initializing a CA
   # for Connect-related connections. Other customizations can be done
@@ -330,7 +330,8 @@ server:
   # Example:
   # nodeSelector: |
   #   beta.kubernetes.io/arch: amd64
-  nodeSelector: null
+  nodeSelector: |
+    disktype: ssd
 
   # used to assign priority to server pods
   # ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/
@@ -788,7 +789,7 @@ connectInject:
   # True if you want to enable connect injection. Set to "-" to inherit from
   # global.enabled.
   # Requires consul-k8s >= 0.10.1.
-  enabled: "-"
+  enabled: false
   image: null # image for consul-k8s that contains the injector
   default: false # true will inject by default, otherwise requires annotation
 

@@ -1,0 +1,37 @@
+global:
+  enabled: true
+  tlsDisable: true
+injector:
+  enabled: false
+server:
+  ingress:
+    enabled: false
+  extraEnvironmentVars:
+    VAULT_CACERT: "/certificates/ca.crt"
+  volumes:
+    - name: vault-pod-cert
+      secret:
+        secretName: vault-pod-cert
+  volumeMounts:
+    - name: vault-pod-cert
+      mountPath: /certificates
+  ha:
+    enabled: true
+    config: |
+      ui = true
+      max_lease_ttl = "8761h"
+      listener "tcp" {
+        address = "[::]:8200"
+        cluster_address = "[::]:8201"
+        tls_cert_file = "/certificates/tls.crt"
+        tls_key_file  = "/certificates/tls.key"
+        tls_client_ca_file = "/certificates/ca.crt"
+      }
+      storage "consul" {
+        path = "vault/"
+        address = "consul-server.databases.svc.cluster.local:8500"
+        scheme = "http"
+        token = "2b07b624-6755-c585-c51d-87b20839633b"
+        tls_skip_verify = "true"
+      }
+      service_registration "kubernetes" {}
