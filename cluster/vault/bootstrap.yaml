@@ -6,10 +6,6 @@ injector:
 server:
   ingress:
     enabled: false
-  extraSecretEnvironmentVars:
-    - envName: CONSUL_TOKEN
-      secretName: vault
-      secretKey: consul
   ha:
     enabled: true
     config: |
