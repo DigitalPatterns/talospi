@@ -4,8 +4,9 @@
 Setup Consul
 ```bash
 helm repo add hashicorp https://helm.releases.hashicorp.com
+kubectl create ns databases
 kubectl -n databases create secret generic consul-gossip-encryption-key --from-literal=key=$(consul keygen)
-helm -n databases install consul -f cluster/bootstrap.yaml hashicorp/consul
+helm -n databases install consul -f cluster/consul/bootstrap.yaml hashicorp/consul
 ```
 
 Get the bootstrap token for authenticating to Consul
