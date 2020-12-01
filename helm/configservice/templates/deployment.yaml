@@ -1,0 +1,112 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "configservice.fullname" . }}
+  {{- if .Values.configservice.deploymenttAnnotations }}
+  annotations:
+    {{- with .Values.configservice.deploymenttAnnotations }}
+      {{- range $key, $value := . }}
+      {{- printf "%s: %s" $key (tpl $value $ | quote) | nindent 4 }}
+      {{- end }}
+      {{- end }}
+  {{- end }}
+  labels:
+    {{- include "configservice.commonLabels" . | nindent 4 }}
+    service: {{ include "configservice.fullname" . }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "configservice.selectorLabels" . | nindent 6 }}
+  replicas: {{ .Values.configservice.replicas }}
+  revisionHistoryLimit: 3
+  minReadySeconds: 5
+  strategy:
+    # indicate which strategy we want for rolling update
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        name: {{ include "configservice.fullname" . }}
+        service: {{ include "configservice.fullname" . }}
+        {{- include "configservice.selectorLabels" . | nindent 8 }}
+          {{- with .Values.configservice.podLabels }}
+          {{- toYaml . | nindent 8 }}
+          {{- end }}
+      annotations:
+        {{- with .Values.configservice.podAnnotations }}
+        {{- range $key, $value := . }}
+        {{- printf "%s: %s" $key (tpl $value $ | quote) | nindent 8 }}
+        {{- end }}
+        {{- end }}
+    spec:
+      restartPolicy: {{ .Values.configservice.restartPolicy }}
+      securityContext:
+        {{- toYaml .Values.configservice.securityContext | nindent 8 }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.configservice.image.repository }}:{{ .Values.configservice.image.tag }}"
+        imagePullPolicy: {{ .Values.configservice.image.pullPolicy }}
+        securityContext:
+          {{- toYaml .Values.configservice.containerSecurityContext | nindent 12 }}
+        {{- with .Values.configservice.lifecycleHooks }}
+        lifecycle:
+          {{- tpl . $ | nindent 12 }}
+        {{- end }}
+        command: ["/bin/sh"]
+        args: ["-c", "/app/run.sh -Djava.security.egd=file:/dev/./urandom -Djavax.net.ssl.keyStore=/etc/keystore/keystore.p12 -Djavax.net.ssl.keyStorePassword=changeit -Djavax.net.ssl.trustStore=/etc/keystore/cacerts -Djavax.net.ssl.trustStoreType=pkcs12 -Djavax.net.ssl.trustStorePassword=changeit -jar  /app/talos-config-server.jar"]
+        env:
+          - name: VAULT_PORT
+            value: {{ .Values.configservice.vault.port | quote }}
+          - name: VAULT_HOST
+            value: {{ .Values.configservice.vault.host | quote }}
+          - name: VAULT_SCHEME
+            value: {{ .Values.configservice.vault.scheme | quote }}
+          - name: SSL_ENABLED
+            value: "true"
+          - name: SERVER_PORT
+            value: "8443"
+          - name: VAULT_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: config-server
+                key: token
+        ports:
+          - name: https
+            containerPort: 8443
+            protocol: TCP
+        livenessProbe:
+          exec:
+            command:
+              - bash
+              - -c
+              - "curl --location --request GET https://localhost:8443/actuator/health --header \"Authorization: Bearer ${VAULT_TOKEN}\" -k"
+          initialDelaySeconds: 60
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            scheme: HTTPS
+            path: /actuator/info
+            port: 8443
+          initialDelaySeconds: 60
+          timeoutSeconds: 3
+        resources:
+          {{- toYaml .Values.configservice.resources | nindent 12 }}
+        volumeMounts:
+          - name: certs
+            mountPath: /certs
+            readOnly: true
+          - name: cacerts
+            mountPath: /cacerts
+            readOnly: true
+      volumes:
+        - name: certs
+          secret:
+            secretName: {{ include "configservice.fullname" . }}-pod-cert
+        - name: cacerts
+          secret:
+            secretName: consul-ca-cert
+      imagePullSecrets:
+        - name: regcred

@@ -14,6 +14,6 @@ The following pages describes the [parts used](parts_list.md) to build the K8s c
 5. [Bootstrap Vault](vault_bootstrap.md)
 6. [Setup Cert Manager with Internal TLS and switch Vault to use TLS](cert_manager_bootstrap.md)
 7. [Upgrade Consul to use TLS](upgrade_consul_to_tls.md)
-8. [Install Talos Config Service](talos-config.md)
+8. [Install Talos Config Service](talos_config.md)
 9. [Install Postgresql DB (non HA)](postgresql.md)
 10. [Install Mongo DB](mongodb.md)

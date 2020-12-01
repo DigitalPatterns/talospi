@@ -1,0 +1,25 @@
+{{- $service := .Values.configservice.service -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "configservice.fullname" . }}
+  {{- with $service.annotations }}
+  annotations:
+    {{- range $key, $value := . }}
+      {{- printf "%s: %s" $key (tpl $value $ | quote) | nindent 4 }}
+      {{- end }}
+      {{- end }}
+  labels:
+    {{- include "configservice.commonLabels" . | nindent 4 }}
+      {{- with $service.labels }}
+      {{- toYaml . | nindent 4 }}
+      {{- end }}
+spec:
+  type: ClusterIP
+  ports:
+  - name: https
+    port: 443
+    targetPort: 8443
+    protocol: TCP
+  selector:
+    {{- include "configservice.selectorLabels" . | nindent 4 }}

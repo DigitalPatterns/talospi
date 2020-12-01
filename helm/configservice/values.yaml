@@ -1,0 +1,49 @@
+clusterDomain: cluster.local
+## Optionally override the fully qualified name
+# fullnameOverride: workflowservice
+# nameOverride: workflowservice
+
+configservice:
+  replicas: 1
+
+  image:
+    repository: digitalpatterns/config-service
+    # Overrides the image tag whose default is the chart version.
+    tag: latest
+    pullPolicy: Always
+  domainname: pi.talos.rocks
+  namespace: databases
+  vault:
+    host: vault.databases.svc.cluster.local
+    port: 8200
+    scheme: https
+
+  restartPolicy: Always
+
+  securityContext:
+    fsGroup: 1000
+
+  containerSecurityContext:
+    runAsUser: 1000
+    runAsNonRoot: true
+
+  podLabels: {}
+  podAnnotations: {}
+
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "256m"
+    limits:
+      memory: "512Mi"
+      cpu: "512m"
+
+  ## Extra annotations to be added to statefulset
+  deploymenttAnnotations: {}
+
+  service:
+    annotations: {}
+    labels: {}
+    issuerRef:
+      name: vault-issuer
+      kind: ClusterIssuer
