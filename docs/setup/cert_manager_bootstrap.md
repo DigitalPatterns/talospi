@@ -93,11 +93,10 @@ Create Vault a TLS certificate valid for one year
 
 ```bash
 VAULT_SKIP_VERIFY=true VAULT_FORMAT=json vault  write pki_int/issue/default-svc-cluster-local common_name="vault.databases.svc.cluster.local" ttl="8760h" > vault_cert.json
-```
-
 jq -r '.data.private_key' < vault_cert.json > tls.key
 jq -r '.data.certificate' < vault_cert.json > tls.crt
 jq -r '.data.issuing_ca' < vault_cert.json > ca.crt
+```
 
 Then append the RootCA *ca.crt* to the ca.crt, afterwards append ca.crt to tls.crt.
 
@@ -134,36 +133,8 @@ export VAULT_ADDR=https://127.0.0.1:8200
 vault operator unseal -tls-skip-verify
 ```
 
-```bash
-kubectl -n databases port-forward service/vault 8200:8200 &
-```
 
-```bash
-export VAULT_ADDR="https://127.0.0.1:8200"
-```
-
-
-#### Step 7 - Setup Cert-Manager
-
-Create a policy for cert-manager for Vault in a file called `/tmp/cert-manager.hcl`
-
-```hcl
-path "pki_int/issue/default-svc-cluster-local" {
-  capabilities = ["read", "list", "create", "update"]
-}
-
-path "pki_int/sign/default-svc-cluster-local" {
-  capabilities = ["read", "list", "create", "update"]
-}
-```
-
-Upload the policy to Vault for Cert-manager to access Vault
-
-```bash
-vault policy write -tls-skip-verify default-svc-cluster-local /tmp/cert-manager.hcl
-```
-
-#### Step 8 - Install Cert-Manager
+#### Step 7 - Install Cert-Manager
 
 ```bash
 kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.1.0/cert-manager.yaml
@@ -172,40 +143,28 @@ kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.1
 
 
 
-Create a kubernetes secret containing the token for cert-manager to access vault as *cert-manager-secret.yaml*
+Create a policy in Vault for cert-manager and apply the token given as a kubernetes secret.
 
 ```bash
+kubectl -n databases port-forward service/vault 8200:8200 &
+export VAULT_ADDR="https://127.0.0.1:8200"
+vault policy write -tls-skip-verify default-svc-cluster-local cluster/cert-manager/vault-policy.hcl
 vault token create -tls-skip-verify -period=8760h -policy=default-svc-cluster-local -explicit-max-ttl=8760h
 kubectl -n cert-manager create secret generic cert-manager-vault-token --from-literal=token=$TOKEN
 ```
 $TOKEN is the token output from the first command.
 
-Create the Issuer yaml for cert-manager as *vault-issuer.yaml*
+Update **cluster/cert-manager/vault-issuer.yaml** putting in the base64 version of the ca bundle. 
+`cat ca.crt | base64`
 
-```yaml
-apiVersion: cert-manager.io/v1
-kind: ClusterIssuer
-metadata:
-  name: vault-issuer
-spec:
-  vault:
-    path: pki_int/sign/default-svc-cluster-local
-    server: https://vault.databases.svc.cluster.local:8200
-    caBundle: <base64 encoded caBundle PEM file>
-    auth:
-      tokenSecretRef:
-        name: cert-manager-vault-token
-        key: token
-```
-
-Upload the secret and issuer to kubernetes
+Create the Vault Cert issuer in kubernetes
 
 ```bash
-kubectl -n cert-manager create -f vault-issuer.yaml
+kubectl create -f cluster/cert-manager/vault-issuer.yaml
 ```
 
 
-#### Step 9 - Create a Vault cert from Vault issued by Cert-Manager
+#### Step 8 - Create a Vault cert from Vault issued by Cert-Manager
 
 Create vault cert issued by cert-manager
 
@@ -220,7 +179,7 @@ kubectl -n databases get certificates | grep vault
 ```
 
 
-#### Step 10 - Update Vault to use the Cert-Manager issued cert
+#### Step 9 - Update Vault to use the Cert-Manager issued cert
 
 Update the helm Vault config with the following to use the new TLS settings:
  
@@ -234,7 +193,6 @@ kubectl -n databases delete pod vault-0 vault-1 vault-2
 
 As we restarted vault we will need to do the following:
 * reset the port-forward to the kubernetes cluster
-* update the VAULT_ADDR environment token now we are using TLS
 * unseal the three vault instances
 
 You need to unlock each vault pod (This must be done on for every vault pod each time it restarts)

@@ -120,7 +120,7 @@ global:
     # Note: remember to switch it back to true once the rollout is complete.
     # Please see this guide for more details:
     # https://learn.hashicorp.com/consul/security-networking/certificates
-    verify: false
+    verify: true
 
     # If httpsOnly is true, Consul will disable the HTTP port on both
     # clients and servers and only accept HTTPS connections.

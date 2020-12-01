@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: vault-issuer
+spec:
+  vault:
+    path: pki_int/sign/default-svc-cluster-local
+    server: https://vault.databases.svc.cluster.local:8200
+    caBundle: CA_BUNDLE_HERE
+    auth:
+      tokenSecretRef:
+        name: cert-manager-vault-token
+        key: token

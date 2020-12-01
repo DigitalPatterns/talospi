@@ -1,6 +1,6 @@
 global:
   enabled: true
-  tlsDisable: true
+  tlsDisable: false
 injector:
   enabled: false
 server:
