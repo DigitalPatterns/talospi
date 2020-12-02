@@ -1,5 +1,0 @@
-postgresql:
-  domainname: pi.talos.cloud
-  namespace: databases
-  db:
-    password: "POSTGRES"

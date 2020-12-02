@@ -65,6 +65,11 @@ Upload the signed certificate back to the kubernetes cluster vault
 vault write pki_int/intermediate/set-signed certificate=@pki_intermediate.cert.pem
 ```
 
+Upload the RootCA Bundle as a secret to the namespace
+
+```bash
+kubectl -n databases create secret generic ca --from-file='ca-bundle.pem=./ca.crt'
+```
 
 #### Step 4 - Create roles to allow certificate requests 
 

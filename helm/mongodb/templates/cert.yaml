@@ -1,0 +1,38 @@
+---
+  {{- $service := .Values.mongodb.service -}}
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: {{ include "mongodb.fullname" . }}-pod-cert
+spec:
+  secretName: {{ include "mongodb.fullname" . }}-pod-cert
+  duration: 2160h # 90d
+  renewBefore: 360h # 15d
+  isCA: false
+  keySize: 2048
+  keyAlgorithm: rsa
+  keyEncoding: pkcs1
+  issuerRef:
+    name: {{ $service.issuerRef.name }}
+    kind: {{ $service.issuerRef.kind }}
+  usages:
+    - server auth
+    - client auth
+  commonName: "*.mongo.{{ .Values.mongodb.namespace }}.svc.cluster.local"
+  dnsNames:
+    - mongodb-0
+    - mongodb-1
+    - mongodb-2
+    - mongodb-0.mongodb.{{ .Values.mongodb.namespace }}
+    - mongodb-1.mongodb.{{ .Values.mongodb.namespace }}
+    - mongodb-2.mongodb.{{ .Values.mongodb.namespace }}
+    - mongodb-0.mongodb.{{ .Values.mongodb.namespace }}.svc
+    - mongodb-1.mongodb.{{ .Values.mongodb.namespace }}.svc
+    - mongodb-2.mongodb.{{ .Values.mongodb.namespace }}.svc
+    - mongodb-0.mongodb.{{ .Values.mongodb.namespace }}.svc.cluster.local
+    - mongodb-1.mongodb.{{ .Values.mongodb.namespace }}.svc.cluster.local
+    - mongodb-2.mongodb.{{ .Values.mongodb.namespace }}.svc.cluster.local
+    - mongo-headless.{{ .Values.mongodb.namespace }}.svc.cluster.local
+    - localhost
+  ipAddresses:
+    - 127.0.0.1

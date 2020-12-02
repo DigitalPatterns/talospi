@@ -1,21 +1,21 @@
 clusterDomain: cluster.local
 
-postgresql:
-  replicas: 1
+mongodb:
+  replicas: 3
   namespace: databases
   domainname: pi.talos.rocks
   image:
-    repository: arm64v8/postgres
+    repository: mongo
     # Overrides the image tag whose default is the chart version.
-    tag: "13"
+    tag: "4"
     pullPolicy: Always
   restartPolicy: Always
 
   securityContext:
-    fsGroup: 1000
+    fsGroup: 999
 
   containerSecurityContext:
-    runAsUser: 1000
+    runAsUser: 999
     runAsNonRoot: true
 
   podLabels: {}
@@ -37,13 +37,15 @@ postgresql:
 
   pv:
     storage:
-      capacity: 5Gi
+      capacity: 10Gi
       className: rook-ceph-block
-      path: /var/snap/microk8s/common/default-storage/
 
   service:
     annotations: {}
     labels: {}
-    port: 5432
+    port: 27017
     protocol: TCP
-    targetPort: 5432
+    targetPort: 27017
+    issuerRef:
+      name: vault-issuer
+      kind: ClusterIssuer
