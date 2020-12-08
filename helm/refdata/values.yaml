@@ -1,0 +1,34 @@
+refdata:
+  namespace: databases
+  image:
+    repository: digitalpatterns/flyway-ref-public
+    tag: "latest"
+    pullPolicy: Always
+
+  db:
+    hostname: postgresql.databases.svc.local
+    schema: reference
+    port: 5432
+    name: reference
+    default:
+      name: postgres
+      user: postgres
+    jdbcOptions:
+    options:
+    owner:
+      user: refowner
+    authenticator:
+      user: authuser
+    anon:
+      user: anonuser
+    service:
+      user: serviceuser
+    readonly:
+      user: readonlyuser
+
+  securityContext:
+    fsGroup: 1000
+
+  containerSecurityContext:
+    runAsUser: 1000
+    runAsNonRoot: true

@@ -56,6 +56,8 @@ spec:
           {{- tpl . $ | nindent 12 }}
         {{- end }}
         env:
+          - name: NODE_EXTRA_CA_CERTS
+            value: /ca/ca.crt
           - name: FORMBUILDER_PORT
             value: "{{ .Values.formbuilder.service.targetPort }}"
         ports:
@@ -79,7 +81,13 @@ spec:
         volumeMounts:
           - mountPath: /config
             name: config-volume
+          - name: ca
+            mountPath: /ca
+            readOnly: true
       volumes:
+        - name: ca
+          secret:
+            secretName: ca
         - name: config-volume
           secret:
             defaultMode: 420

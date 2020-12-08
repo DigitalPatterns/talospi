@@ -1,29 +1,24 @@
-{{- $ingress := .Values.formapi.ingress -}}
-  {{- if $ingress.enabled -}}
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "formapi.fullname" . }}
-  {{- with $ingress.annotations }}
   annotations:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-  labels:
-    {{- include "formapi.commonLabels" . | nindent 4 }}
-      {{- with $ingress.labels }}
-      {{- toYaml . | nindent 4 }}
-      {{- end }}
+    kubernetes.io/ingress.class: {{ .Values.formapi.ingress.class }}
+  namespace: {{ .Values.formapi.namespace }}
+  name: {{ include "formapi.fullname" . }}
 spec:
+  rules:
+    - host: {{ .Values.formapi.ingress.name }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "formapi.fullname" . }}
+                port:
+                  number: {{ .Values.formapi.service.port }}
+  # This section is only required if TLS is to be enabled for the Ingress
   tls:
     - hosts:
-        - {{ include "formapi.fullname" $ }}.{{ .Values.formapi.domainname }}
-      secretName: {{ include "formapi.fullname" $ }}-tls-cert
-  rules:
-      - host: {{ include "formapi.fullname" $ }}.{{ .Values.formapi.domainname }}
-        http:
-          paths:
-              - path: /
-                backend:
-                  serviceName: {{ include "formapi.fullname" $ }}
-                  servicePort: http
-  {{- end -}}
+        - {{ .Values.formapi.ingress.name }}
+      secretName: {{ include "formapi.fullname" . }}-ext-cert

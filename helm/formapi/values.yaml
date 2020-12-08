@@ -24,7 +24,7 @@ formapi:
     username: "formapi"
     name: "formapi"
     port: "5432"
-    ssl: "false"
+    ssl: "prefer"
 
   log:
     enable:
@@ -96,8 +96,16 @@ formapi:
   service:
     annotations: {}
     labels: {}
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+    issuerRef:
+      name: vault-issuer
+      kind: ClusterIssuer
+    issuerRefExt:
+      name: vault-issuer-ext
+      kind: ClusterIssuer
 
   ingress:
-    enabled: false
-    annotations: {}
-    labels: {}
+    name: formapi.pi.talos.rocks
+    class: traefik

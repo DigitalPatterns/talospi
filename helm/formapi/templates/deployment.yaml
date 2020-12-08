@@ -56,12 +56,14 @@ spec:
           {{- tpl . $ | nindent 12 }}
         {{- end }}
         env:
+          - name: NODE_EXTRA_CA_CERTS
+            value: /ca/ca.crt
           - name: API_FORM_BUSINESS_KEY_PREFIX
             value: {{ .Values.formapi.businessKeyPrefix | quote }}
           - name: API_FORM_BUSINESS_KEY_ENABLED
             value: "true"
           - name: API_FORM_PORT
-            value: "8080"
+            value: "{{ .Values.formapi.service.targetPort }}"
           - name: DB_FORM_DEFAULT_USERNAME
             value: {{ .Values.formapi.db.username | quote }}
           - name: DB_FORM_HOSTNAME
@@ -134,19 +136,27 @@ spec:
                 key: keycloakAdminPassword
         ports:
           - name: http
-            containerPort: 8080
+            containerPort: {{ .Values.formapi.service.targetPort }}
             protocol: TCP
         livenessProbe:
           httpGet:
             path: /healthz
-            port: 8080
+            port: {{ .Values.formapi.service.targetPort }}
           initialDelaySeconds: 30
           timeoutSeconds: 5
         readinessProbe:
           httpGet:
             path: /readiness
-            port: 8080
+            port: {{ .Values.formapi.service.targetPort }}
           initialDelaySeconds: 30
           timeoutSeconds: 1
         resources:
           {{- toYaml .Values.formapi.resources | nindent 12 }}
+        volumeMounts:
+          - name: ca
+            mountPath: /ca
+            readOnly: true
+      volumes:
+        - name: ca
+          secret:
+            secretName: ca

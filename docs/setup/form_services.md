@@ -1,6 +1,24 @@
 # Form API Server & Builder
 
 
+#### PreStep
+
+Before beginning, ensure Postgres is deployed along with Redis. You also need to ensure that the CA trust chain has been
+uploaded as a secret to the namespace.
+
+Example:
+
+```bash
+cat Internal_Intermediate_CA.crt >> ca.crt
+cat External_Intermediate_CA.crt >> ca.crt
+cat Root_CA.crt >> ca.crt
+```
+Obviously if there are more CA's needed then add these. After which create the secret in the namespace using the following
+command.
+
+`kubectl create secret generic ca --from-file=./ca.crt`
+
+
 ## Stage 1 - FormAPI
 
 #### - Step 1 Create a database
