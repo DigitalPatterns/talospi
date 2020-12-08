@@ -1,13 +1,13 @@
 clusterDomain: cluster.local
 
-postgresql:
+redis:
   replicas: 1
   namespace: databases
   domainname: pi.talos.rocks
   image:
-    repository: postgres
+    repository: redis
     # Overrides the image tag whose default is the chart version.
-    tag: "13"
+    tag: "6"
     pullPolicy: Always
   restartPolicy: Always
 
@@ -37,13 +37,12 @@ postgresql:
 
   pv:
     storage:
-      capacity: 5Gi
+      capacity: 1Gi
       className: longhorn
-      path: /var/snap/microk8s/common/default-storage/
 
   service:
     annotations: {}
     labels: {}
-    port: 5432
+    port: 6379
     protocol: TCP
-    targetPort: 5432
+    targetPort: 6379

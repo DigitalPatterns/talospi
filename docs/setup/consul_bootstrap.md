@@ -4,22 +4,22 @@
 Setup Consul
 ```bash
 helm repo add hashicorp https://helm.releases.hashicorp.com
-kubectl create ns databases
-kubectl -n databases create secret generic consul-gossip-encryption-key --from-literal=key=$(consul keygen)
-helm -n databases install consul -f cluster/consul/bootstrap.yaml hashicorp/consul
+kubectl create ns consul
+kubectl -n consul create secret generic consul-gossip-encryption-key --from-literal=key=$(consul keygen)
+helm -n consul install consul -f cluster/consul/bootstrap.yaml hashicorp/consul
 ```
 
 Get the bootstrap token for authenticating to Consul
 
 ```bash
-kubectl -n databases get secrets consul-bootstrap-acl-token -o json | jq -cr .data.token | base64 -d
+kubectl -n consul get secrets consul-bootstrap-acl-token -o json | jq -cr .data.token | base64 -d
 ```
 
 
 Enable port forwarding so that you can connect to the Consul UI
 
 ```bash
-kubectl -n databases port-forward service/consul-server 8500:8500
+kubectl -n consul port-forward service/consul-server 8500:8500
 ```
 
 Go to the ACL / Polices page [http://localhost:8500/ui/talospi/acls/policies/create](http://localhost:8500/ui/talospi/acls/policies/create) 

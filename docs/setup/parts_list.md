@@ -15,7 +15,6 @@ The following parts have been used to produce the K8s cluster, which come to aro
 | Raspberry Pi Power over Ethernet (PoE) HAT v2.0 | SKU: SC0206 | 4 |
 | Raspberry Pi 4 Model B 8GB | SKU: SC0195 | 4 |
 
-
 Optional extra's for local control
 
 |Part|Model|Quantity|

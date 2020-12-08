@@ -1,13 +1,13 @@
 clusterDomain: cluster.local
 
-postgresql:
-  replicas: 1
-  namespace: databases
+rabbitmq:
+  replicas: 3
+  namespace: rabbitmq
   domainname: pi.talos.rocks
   image:
-    repository: postgres
+    repository: rabbitmq
     # Overrides the image tag whose default is the chart version.
-    tag: "13"
+    tag: "3"
     pullPolicy: Always
   restartPolicy: Always
 
@@ -24,26 +24,31 @@ postgresql:
     disktype: ssd
   }
 
+  auth:
+    tls:
+      enabled: true
+      failIfNoPeerCert: true
+      sslOptionsVerify: verify_peer
+
   resources:
     requests:
-      memory: "64Mi"
-      cpu: "10m"
+      memory: "512Mi"
+      cpu: "1000m"
     limits:
-      memory: "256Mi"
-      cpu: "500m"
+      memory: "1024Mi"
+      cpu: "1500m"
 
   ## Extra annotations to be added to statefulset
   deploymenttAnnotations: {}
 
   pv:
     storage:
-      capacity: 5Gi
-      className: longhorn
-      path: /var/snap/microk8s/common/default-storage/
+      capacity: 2Gi
+      className: rook-ceph-block
 
   service:
     annotations: {}
     labels: {}
-    port: 5432
-    protocol: TCP
-    targetPort: 5432
+    issuerRef:
+      name: vault-issuer
+      kind: ClusterIssuer

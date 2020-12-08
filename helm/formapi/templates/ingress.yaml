@@ -1,0 +1,29 @@
+{{- $ingress := .Values.formapi.ingress -}}
+  {{- if $ingress.enabled -}}
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: {{ include "formapi.fullname" . }}
+  {{- with $ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  labels:
+    {{- include "formapi.commonLabels" . | nindent 4 }}
+      {{- with $ingress.labels }}
+      {{- toYaml . | nindent 4 }}
+      {{- end }}
+spec:
+  tls:
+    - hosts:
+        - {{ include "formapi.fullname" $ }}.{{ .Values.formapi.domainname }}
+      secretName: {{ include "formapi.fullname" $ }}-tls-cert
+  rules:
+      - host: {{ include "formapi.fullname" $ }}.{{ .Values.formapi.domainname }}
+        http:
+          paths:
+              - path: /
+                backend:
+                  serviceName: {{ include "formapi.fullname" $ }}
+                  servicePort: http
+  {{- end -}}

@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: {{ .Values.formbuilder.ingress.class }}
+  namespace: {{ .Values.formbuilder.namespace }}
+  name: {{ include "formbuilder.fullname" . }}
+spec:
+  rules:
+    - host: {{ .Values.formbuilder.ingress.name }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "formbuilder.fullname" . }}
+                port:
+                  number: {{ .Values.formbuilder.service.port }}
+  # This section is only required if TLS is to be enabled for the Ingress
+  tls:
+    - hosts:
+        - {{ .Values.formbuilder.ingress.name }}
+      secretName: {{ include "formbuilder.fullname" . }}-ext-cert

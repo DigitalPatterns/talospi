@@ -1,0 +1,119 @@
+clusterDomain: cluster.local
+
+## Optionally override the fully qualified name
+# fullnameOverride: formbuilder
+
+## Optionally override the name
+# nameOverride: formbuilder
+
+formbuilder:
+  replicas: 1
+
+  image:
+    repository: digitalpatterns/form-builder
+    # Overrides the image tag whose default is the chart version.
+    tag: ""
+    pullPolicy: Always
+
+  port: 8080
+
+  config: |
+    {
+      "environments": [
+        {
+          "id": "tdev",
+          "label": "TalosPI Dev",
+          "url": "https://formapi.pi.talos.rocks",
+          "description": "Talos Rocks - Dev Environment",
+          "service": {
+            "keycloak": {
+              "tokenUrl": "https://keycloak.pi.talos.rocks/auth/realms/rocks/protocol/openid-connect/token",
+              "clientId": "formbuilderservice",
+              "secret": "ebd2aa52-9071-4ea5-813d-fbb383da60b5"
+            }
+          },
+          "editable": true,
+          "reverse-proxies" : [
+            {
+              "path" : "/tdev/refdata/**",
+              "url" : "http://postgrest.default.svc.cluster.local",
+              "pathRewrite" : {
+                "^/tdev/refdata" : ""
+              }
+            },
+            {
+              "path": "/tdev/files/**",
+              "url": "http://attachments.default.svc.cluster.local",
+              "pathRewrite": {
+                "^/tdev/files": "/files"
+              }
+            },
+            {
+              "path" : "/tdev/form/**",
+              "url" : "http://formapi.default.svc.cluster.local",
+              "pathRewrite" : {
+                "^/tdev/form" : "/form"
+              }
+            }
+          ]
+        }
+      ],
+      "gov-uk-enabled" : true,
+      "legacy-migration": true,
+      "keycloak": {
+        "authUrl": "https://keycloak.pi.talos.rocks/auth",
+        "clientId": "formbuilder",
+        "realm": "rocks",
+        "access-roles": ["formbuilder-readonly"],
+        "promotion-roles": ["formbuilder-promotion"],
+        "edit-roles": ["formbuilder-edit"]
+      }
+    }
+
+
+  restartPolicy: Always
+
+  securityContext:
+    fsGroup: 1000
+
+  containerSecurityContext:
+    runAsUser: 1000
+    runAsNonRoot: true
+
+  ## The path formbuilder will be served from. To serve formbuilder from the root path, use two quotes (e.g. "").
+  basepath: ""
+
+  ## Additional arguments to start command e.g. -Dformbuilder.import= to load a realm
+  extraArgs: ""
+
+  podLabels: {}
+  podAnnotations: {}
+
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+
+  ## Extra annotations to be added to statefulset
+  deploymenttAnnotations: {}
+
+  service:
+    annotations: {}
+    labels: {}
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+    issuerRef:
+      name: vault-issuer
+      kind: ClusterIssuer
+    issuerRefExt:
+      name: vault-issuer-ext
+      kind: ClusterIssuer
+
+  ingress:
+    name: formbuilder.pi.talos.rocks
+    class: traefik

@@ -1,0 +1,152 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "formapi.fullname" . }}
+  {{- if .Values.formapi.deploymenttAnnotations }}
+  annotations:
+    {{- with .Values.formapi.deploymenttAnnotations }}
+      {{- range $key, $value := . }}
+      {{- printf "%s: %s" $key (tpl $value $ | quote) | nindent 4 }}
+      {{- end }}
+      {{- end }}
+  {{- end }}
+  labels:
+    {{- include "formapi.commonLabels" . | nindent 4 }}
+    service: {{ include "formapi.fullname" . }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "formapi.selectorLabels" . | nindent 6 }}
+  replicas: {{ .Values.formapi.replicas }}
+  revisionHistoryLimit: 3
+  minReadySeconds: 5
+  strategy:
+    # indicate which strategy we want for rolling update
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        name: {{ include "formapi.fullname" . }}
+        service: {{ include "formapi.fullname" . }}
+        {{- include "formapi.selectorLabels" . | nindent 8 }}
+          {{- with .Values.formapi.podLabels }}
+          {{- toYaml . | nindent 8 }}
+          {{- end }}
+      annotations:
+        {{- with .Values.formapi.podAnnotations }}
+        {{- range $key, $value := . }}
+        {{- printf "%s: %s" $key (tpl $value $ | quote) | nindent 8 }}
+        {{- end }}
+        {{- end }}
+    spec:
+      restartPolicy: {{ .Values.formapi.restartPolicy }}
+      securityContext:
+        {{- toYaml .Values.formapi.securityContext | nindent 8 }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.formapi.image.repository }}:{{ .Values.formapi.image.tag }}"
+        imagePullPolicy: {{ .Values.formapi.image.pullPolicy }}
+        securityContext:
+          {{- toYaml .Values.formapi.containerSecurityContext | nindent 12 }}
+        {{- with .Values.formapi.lifecycleHooks }}
+        lifecycle:
+          {{- tpl . $ | nindent 12 }}
+        {{- end }}
+        env:
+          - name: API_FORM_BUSINESS_KEY_PREFIX
+            value: {{ .Values.formapi.businessKeyPrefix | quote }}
+          - name: API_FORM_BUSINESS_KEY_ENABLED
+            value: "true"
+          - name: API_FORM_PORT
+            value: "8080"
+          - name: DB_FORM_DEFAULT_USERNAME
+            value: {{ .Values.formapi.db.username | quote }}
+          - name: DB_FORM_HOSTNAME
+            value: {{ .Values.formapi.db.hostname | quote }}
+          - name: DB_FORM_DEFAULT_DBNAME
+            value: {{ .Values.formapi.db.name | quote }}
+          - name: DB_FORM_PORT
+            value: {{ .Values.formapi.db.port | quote }}
+          - name: DB_FORM_SSL
+            value: {{ .Values.formapi.db.ssl | quote }}
+          - name: DB_FORM_DEFAULT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: formapi
+                key: dbFormPassword
+          - name: API_FORM_LOG_ENABLE_CHANGE
+            value: {{ .Values.formapi.log.enable.change | quote }}
+          - name: API_FORM_LOG_ENABLE_QUERY
+            value: {{ .Values.formapi.log.enable.query | quote }}
+          - name: API_FORM_LOG_CHANGE_TIMEOUT
+            value: {{ .Values.formapi.log.changeTimeout | quote }}
+          - name: API_FORM_CACHE_ROLE_MAX_AGE
+            value: {{ .Values.formapi.cache.role.max.age | quote }}
+          - name: API_FORM_CACHE_ROLE_MAX_ENTRIES
+            value: {{ .Values.formapi.cache.role.max.entries | quote }}
+          - name: API_FORM_CACHE_FORM_MAX_AGE
+            value: {{ .Values.formapi.cache.form.max.age | quote }}
+          - name: API_FORM_CACHE_FORM_MAX_ENTRIES
+            value: {{ .Values.formapi.cache.form.max.entries | quote }}
+          - name: API_FORM_CACHE_USER_ROLE_ENTRIES
+            value: {{ .Values.formapi.cache.user.role.entries | quote }}
+          - name: API_FORM_CACHE_USER_FORM_ENTRIES
+            value: {{ .Values.formapi.cache.user.form.entries | quote }}
+          - name: API_FORM_CACHE_USER_MAX_AGE
+            value: {{ .Values.formapi.cache.user.max.age | quote }}
+          - name: API_FORM_CACHE_USER_MAX_ENTRIES
+            value: {{ .Values.formapi.cache.user.max.entries | quote }}
+          - name: REDIS_PORT
+            value: {{ .Values.formapi.redis.port | quote }}
+          - name: REDIS_SSL
+            value: {{ .Values.formapi.redis.ssl | quote }}
+          - name: REDIS_URI
+            value: {{ .Values.formapi.redis.uri | quote }}
+#          - name: REDIS_TOKEN
+#            valueFrom:
+#              secretKeyRef:
+#                name: formapi
+#                key: redisToken
+          - name: KEYCLOAK_REALM
+            value: {{ .Values.formapi.keycloak.realm | quote }}
+          - name: API_FORM_KEYCLOAK_CLIENT_ID
+            value: {{ .Values.formapi.keycloak.clientId | quote }}
+          - name: KEYCLOAK_PROTOCOL
+            value: {{ .Values.formapi.keycloak.protocol | quote }}
+          - name: KEYCLOAK_URL
+            value: {{ .Values.formapi.keycloak.url | quote }}
+          - name: API_FORM_KEYCLOAK_ROLES
+            value: {{ .Values.formapi.keycloak.roles | quote }}
+          - name: API_FORM_KEYCLOAK_BEARER_ONLY
+            value: {{ .Values.formapi.keycloak.bearerOnly | quote }}
+          - name: API_FORM_KEYCLOAK_ADMIN_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: formapi
+                key: keycloakAdminUsername
+          - name: API_FORM_KEYCLOAK_ADMIN_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: formapi
+                key: keycloakAdminPassword
+        ports:
+          - name: http
+            containerPort: 8080
+            protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 30
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /readiness
+            port: 8080
+          initialDelaySeconds: 30
+          timeoutSeconds: 1
+        resources:
+          {{- toYaml .Values.formapi.resources | nindent 12 }}

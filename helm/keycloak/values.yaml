@@ -1,21 +1,21 @@
 clusterDomain: cluster.local
 
-postgresql:
+keycloak:
   replicas: 1
-  namespace: databases
+  namespace: keycloak
   domainname: pi.talos.rocks
   image:
-    repository: postgres
+    repository: docker.io/jboss/keycloak
     # Overrides the image tag whose default is the chart version.
-    tag: "13"
+    tag: "11.0.2"
     pullPolicy: Always
   restartPolicy: Always
 
   securityContext:
-    fsGroup: 999
+    fsGroup: 1000
 
   containerSecurityContext:
-    runAsUser: 999
+    runAsUser: 1000
     runAsNonRoot: true
 
   podLabels: {}
@@ -24,26 +24,35 @@ postgresql:
     disktype: ssd
   }
 
+  db:
+    name: keycloak
+    port: 5432
+    hostname: postgresql.databases.svc.cluster.local
+
   resources:
     requests:
-      memory: "64Mi"
-      cpu: "10m"
-    limits:
       memory: "256Mi"
       cpu: "500m"
+    limits:
+      memory: "512Mi"
+      cpu: "1000m"
 
   ## Extra annotations to be added to statefulset
   deploymenttAnnotations: {}
 
-  pv:
-    storage:
-      capacity: 5Gi
-      className: longhorn
-      path: /var/snap/microk8s/common/default-storage/
-
   service:
     annotations: {}
     labels: {}
-    port: 5432
+    port: 8080
     protocol: TCP
-    targetPort: 5432
+    targetPort: 8080
+    issuerRef:
+      name: vault-issuer
+      kind: ClusterIssuer
+    issuerRefExt:
+      name: vault-issuer-ext
+      kind: ClusterIssuer
+
+  ingress:
+    name: keycloak.pi.talos.rocks
+    class: traefik

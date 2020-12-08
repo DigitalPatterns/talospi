@@ -1,0 +1,38 @@
+---
+  {{- $service := .Values.keycloak.service -}}
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: {{ include "keycloak.fullname" . }}-pod-cert
+spec:
+  secretName: {{ include "keycloak.fullname" . }}-pod-cert
+  duration: 2160h # 90d
+  renewBefore: 360h # 15d
+  isCA: false
+  keySize: 2048
+  keyAlgorithm: rsa
+  keyEncoding: pkcs1
+  issuerRef:
+    name: {{ $service.issuerRef.name }}
+    kind: {{ $service.issuerRef.kind }}
+  usages:
+    - server auth
+    - client auth
+  commonName: "*.mongo.{{ .Values.keycloak.namespace }}.svc.cluster.local"
+  dnsNames:
+    - keycloak-0
+    - keycloak-1
+    - keycloak-2
+    - keycloak-0.keycloak.{{ .Values.keycloak.namespace }}
+    - keycloak-1.keycloak.{{ .Values.keycloak.namespace }}
+    - keycloak-2.keycloak.{{ .Values.keycloak.namespace }}
+    - keycloak-0.keycloak.{{ .Values.keycloak.namespace }}.svc
+    - keycloak-1.keycloak.{{ .Values.keycloak.namespace }}.svc
+    - keycloak-2.keycloak.{{ .Values.keycloak.namespace }}.svc
+    - keycloak-0.keycloak.{{ .Values.keycloak.namespace }}.svc.cluster.local
+    - keycloak-1.keycloak.{{ .Values.keycloak.namespace }}.svc.cluster.local
+    - keycloak-2.keycloak.{{ .Values.keycloak.namespace }}.svc.cluster.local
+    - mongo-headless.{{ .Values.keycloak.namespace }}.svc.cluster.local
+    - localhost
+  ipAddresses:
+    - 127.0.0.1

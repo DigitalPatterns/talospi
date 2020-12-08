@@ -60,6 +60,7 @@ update /etc/hosts adding in the pi names, this will allow all the cluster nodes 
 
 ```bash
 127.0.0.1 localhost
+192.168.99.2 ubuntu-desktop
 192.168.99.101 pi1
 192.168.99.102 pi2
 192.168.99.103 pi3
@@ -67,6 +68,30 @@ update /etc/hosts adding in the pi names, this will allow all the cluster nodes 
 ```
 
 
-#### Step 6 - reboot
+#### Step 6 - Update Sudoers
 
-sudo init 6
+To allow easy management from the Pi desktop node, we allow the Ubuntu user to sudo with no password.
+
+`vi /etc/sudoers`
+
+Update the following line `%sudo ALL=(ALL) NOPASSWD:ALL`
+
+The above step is not recommended for secure setups however, it does mean you will need to alter the k3s install commands.
+
+
+#### Step 7 - Update firewall rules
+
+We next allow permissive firewall rules, which allow inter node communication. It is recommended that Kubernetes clusters
+are on their own network segment behind their own firewalls. For more secure deployment individual node firewall rules 
+can be applied.
+
+```bash
+sudo iptables -P FORWARD ACCEPT
+sudo ufw allow in on cni0 && sudo ufw allow out on cni0
+sudo apt install iptables-persistent
+sudo ufw default allow routed
+```
+
+#### Step 8 - reboot
+
+`sudo init 6`

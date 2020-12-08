@@ -1,0 +1,24 @@
+{{- $service := .Values.formbuilder.service -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "formbuilder.fullname" . }}
+  {{- with $service.annotations }}
+  annotations:
+    {{- range $key, $value := . }}
+      {{- printf "%s: %s" $key (tpl $value $ | quote) | nindent 4 }}
+      {{- end }}
+      {{- end }}
+  labels:
+    {{- include "formbuilder.commonLabels" . | nindent 4 }}
+      {{- with $service.labels }}
+      {{- toYaml . | nindent 4 }}
+      {{- end }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ $service.port }}
+      targetPort: {{ $service.targetPort }}
+      protocol: {{ $service.protocol }}
+  selector:
+    {{- include "formbuilder.selectorLabels" . | nindent 4 }}

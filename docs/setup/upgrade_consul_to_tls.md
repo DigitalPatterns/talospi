@@ -9,12 +9,12 @@ K8s Intermediate CA for it to use.
 Create an intermediate PKI store and CSR for the consul cluster
 
 ```bash
-vault secrets enable -path=pki_int_consul pki
-vault secrets tune -max-lease-ttl=43800h pki_int_consul
+vault secrets enable -path=pki_int_consul -tls-skip-verify pki  
+vault secrets tune -tls-skip-verify -max-lease-ttl=43800h pki_int_consul
 ```
 
 ```bash
-VAULT_FORMAT=json vault write pki_int_consul/intermediate/generate/exported \
+VAULT_FORMAT=json vault write -tls-skip-verify pki_int_consul/intermediate/generate/exported \
     add_basic_constraints=true\
     common_name="cluster Talos Production Intermediate Authority" \
     format=pem \
@@ -35,24 +35,25 @@ vault write -tls-skip-verify -format=json pki_int/root/sign-intermediate \
         ttl="43800h" \
         | jq -r '.data.certificate' > pki_consul_intermediate.cert.pem
         
+cat RootCA.crt >> pki_consul_intermediate.cert.pem
 vault write -tls-skip-verify pki_int_consul/intermediate/set-signed certificate=@pki_consul_intermediate.cert.pem 
 ```
+Add the CA certs to the generated cert, this allows it to form a proper CA Chain in order to validate certificates.
 
 
 #### Step 3 - Update Consul to use TLS
 
-Add the CA certs to the generated cert, this allows it to form a proper CA Chain in order to validate certificates.
+
 Then upload the generated key and cert as Kube secrets, after which a Helm will perform a rolling restart.
 ```bash
-cat ca.crt >> pki_consul_intermediate.cert.pem
-kubectl -n databases create secret generic consul-ca-key --from-file='tls.key=./pki_consul_intermediate.key.pem'
-kubectl -n databases create secret generic consul-ca-cert --from-file='tls.crt=./pki_consul_intermediate.cert.pem'
-helm -n databases upgrade consul -f cluster/consul/tls.yaml hashicorp/consul
+kubectl -n consul create secret generic consul-ca-key --from-file='tls.key=./pki_consul_intermediate.key.pem'
+kubectl -n consul create secret generic consul-ca-cert --from-file='tls.crt=./pki_consul_intermediate.cert.pem'
+helm -n consul upgrade consul -f cluster/consul/tls.yaml hashicorp/consul
 ```
 
 Once the cluster has healed and switched to using TLS, we run helm once more to switch consul to verify certificates.
 ```bash
-helm -n databases upgrade consul -f cluster/consul/tls_1.yaml hashicorp/consul
+helm -n consul upgrade consul -f cluster/consul/tls_1.yaml hashicorp/consul
 ```
 
 
@@ -64,8 +65,8 @@ You may find you need to kill the vault pods to force switching between stages.
 Restart Vault to use the new settings
 
 ```bash
-helm -n databases upgrade vault -f cluster/vault/tls_3.yaml hashicorp/vault
-kubectl -n databases delete pod vault-0 vault-1 vault-2
+helm -n vault upgrade vault -f cluster/vault/tls_3.yaml hashicorp/vault
+kubectl -n vault delete pod vault-0 vault-1 vault-2
 ```
 
 As we restarted vault we will need to do the following:
@@ -77,7 +78,7 @@ You need to unlock each vault pod (This must be done on for every vault pod each
 Exec into each vault pod and execute unseal 3 times [0..2]
 
 ```bash
-kubectl -n databases exec -it vault-0 -- sh
+kubectl -n vault exec -it vault-0 -- sh
 export VAULT_ADDR=https://127.0.0.1:8200
 vault operator unseal -tls-skip-verify
 ```

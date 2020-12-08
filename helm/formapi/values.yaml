@@ -1,0 +1,103 @@
+clusterDomain: cluster.local
+
+## Optionally override the fully qualified name
+# fullnameOverride: formapi
+
+## Optionally override the name
+# nameOverride: formapi
+
+formapi:
+  replicas: 1
+
+  image:
+    repository: digitalpatterns/form-api-server
+    # Overrides the image tag whose default is the chart version.
+    tag: "latest"
+    pullPolicy: Always
+
+  logLevel: DEBUG
+  correlationIdRequestHeader: dev
+
+  businessKeyPrefix: TDev
+  db:
+    hostname: postgresql.databases.svc.cluster.local
+    username: "formapi"
+    name: "formapi"
+    port: "5432"
+    ssl: "false"
+
+  log:
+    enable:
+      change: true
+      query: true
+    changeTimeout: 600
+  cache:
+    role:
+      max:
+        age: 600
+        entries: 10
+    form:
+      max:
+        age: 600
+        entries: 10
+    user:
+      role:
+        entries: 10
+      form:
+        entries: 10
+      max:
+        age: 600
+        entries: 20
+
+  redis:
+    token: ""
+    port: 6379
+    ssl: false
+    uri: "redis.databases.svc.cluster.local"
+
+  keycloak:
+    bearerOnly: "true"
+    roles: "form-admin"
+    url: "keycloak.pi.talos.rocks/auth"
+    protocol: "https://"
+    clientId: "formapi"
+    realm: "rocks"
+    admin:
+      username: ""
+      password: ""
+
+  restartPolicy: Always
+
+  securityContext:
+    fsGroup: 1000
+
+  containerSecurityContext:
+    runAsUser: 1000
+    runAsNonRoot: true
+
+  ## The path formapi will be served from. To serve formapi from the root path, use two quotes (e.g. "").
+  basepath: ""
+
+  podLabels: {}
+  podAnnotations: {}
+
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "500m"
+    limits:
+      memory: "512Mi"
+      cpu: "750m"
+
+
+  ## Extra annotations to be added to statefulset
+  deploymenttAnnotations: {}
+
+  service:
+    annotations: {}
+    labels: {}
+
+  ingress:
+    enabled: false
+    annotations: {}
+    labels: {}

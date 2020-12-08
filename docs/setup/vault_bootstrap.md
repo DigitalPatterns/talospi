@@ -4,7 +4,8 @@
 Deploy the Vault helm chart (replace "TOKEN_HERE" with the consul token created for vault in the previous step into the chart)
 
 ```bash
-helm -n databases install vault -f cluster/vault/bootstrap.yaml hashicorp/vault
+kubectl create ns vault
+helm -n vault install vault -f cluster/vault/bootstrap.yaml hashicorp/vault
 ```
 
 When vault's deployed, it will not transition to a running state until it has been unlocked to do this follow these steps:
@@ -14,7 +15,7 @@ When vault's deployed, it will not transition to a running state until it has be
 
 1. Exec into the first vault pod
 ```bash
-kubectl -n databases exec -it vault-0 -- sh
+kubectl -n vault exec -it vault-0 -- sh
 ```
 
 2. Run the vault initialisation command
@@ -43,7 +44,7 @@ You need to unlock each vault pod (This must be done on for every vault pod each
 1. Exec into each vault pod [0..2]
 
 ```bash
-kubectl -n databases exec -it vault-0 -- sh
+kubectl -n vault exec -it vault-0 -- sh
 ```
 
 2. Execute `unseal operator` command 3 times on each pod using a different unseal key from the output you got above each time
