@@ -57,21 +57,21 @@ spec:
         {{- end }}
         env:
           - name: FORMBUILDER_PORT
-            value: "{{ .Values.formbuilder.targetPort }}"
+            value: "{{ .Values.formbuilder.service.targetPort }}"
         ports:
           - name: http
-            containerPort: {{ .Values.formbuilder.targetPort }}
+            containerPort: {{ .Values.formbuilder.service.targetPort }}
             protocol: TCP
         livenessProbe:
           httpGet:
             path: /healthz
-            port: {{ .Values.formbuilder.targetPort }}
+            port: {{ .Values.formbuilder.service.targetPort }}
           initialDelaySeconds: 30
           timeoutSeconds: 5
         readinessProbe:
           httpGet:
             path: /readiness
-            port: {{ .Values.formbuilder.targetPort }}
+            port: {{ .Values.formbuilder.service.targetPort }}
           initialDelaySeconds: 30
           timeoutSeconds: 1
         resources:
@@ -83,4 +83,4 @@ spec:
         - name: config-volume
           secret:
             defaultMode: 420
-            secretName: {{ include "formbuilder.fullname" . }}
+            secretName: formbuilder

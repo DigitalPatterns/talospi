@@ -259,7 +259,7 @@ server:
   # the attached volume. storageClass is the class of storage which defaults
   # to null (the Kube cluster will pick the default).
   storage: 10Gi
-  storageClass: rook-ceph-block
+  storageClass: longhorn
 
   # connect will enable Connect on all the servers, initializing a CA
   # for Connect-related connections. Other customizations can be done
@@ -330,8 +330,8 @@ server:
   # Example:
   # nodeSelector: |
   #   beta.kubernetes.io/arch: amd64
-  nodeSelector: |
-    disktype: ssd
+#  nodeSelector: |
+#    disktype: ssd
 
   # used to assign priority to server pods
   # ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/

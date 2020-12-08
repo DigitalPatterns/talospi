@@ -68,6 +68,10 @@ In Keycloak setup a new client called `formbuilderservice` as *confidential*, al
 
 On the Credentials tab, grab the secret as this is needed to update the appConfig.json.
 
+You also need to setup a public client called formbuilder`
+![](../images/formbuilder/client2.png)
+
+
 Form Builder uses the following roles which must be setup via the roles tab:
 * formbuilder-readonly
 * formbuilder-promotion
@@ -76,3 +80,71 @@ Form Builder uses the following roles which must be setup via the roles tab:
 You can alter the names of the roles if you wish, but you must make the corresponding changes to the appConfig.json.
 
 
+#### Step 2 - appConfig.json
+
+Form Builder uses an application config file in JSON format. A sample is here below:
+
+*appConfig.json*
+```json
+{
+  "environments": [
+    {
+      "id": "tdev",
+      "label": "TalosPI Dev",
+      "url": "https://formapi.pi.talos.rocks",
+      "description": "Talos Rocks - Dev Environment",
+      "service": {
+        "keycloak": {
+          "tokenUrl": "https://keycloak.pi.talos.rocks/auth/realms/rocks/protocol/openid-connect/token",
+          "clientId": "formbuilderservice",
+          "secret": "SECRET HERE"
+        }
+      },
+      "editable": true,
+      "reverse-proxies" : [
+        {
+          "path" : "/tdev/refdata/**",
+          "url" : "http://postgrest.default.svc.cluster.local",
+          "pathRewrite" : {
+            "^/tdev/refdata" : ""
+          }
+        },
+        {
+          "path": "/tdev/files/**",
+          "url": "http://attachments.default.svc.cluster.local",
+          "pathRewrite": {
+            "^/tdev/files": "/files"
+          }
+        },
+        {
+          "path" : "/tdev/form/**",
+          "url" : "http://formapi.default.svc.cluster.local",
+          "pathRewrite" : {
+            "^/tdev/form" : "/form"
+          }
+        }
+      ]
+    }
+  ],
+  "gov-uk-enabled" : true,
+  "legacy-migration": true,
+  "keycloak": {
+    "authUrl": "https://keycloak.pi.talos.rocks/auth",
+    "clientId": "formbuilder",
+    "realm": "rocks",
+    "access-roles": ["formbuilder-readonly"],
+    "promotion-roles": ["formbuilder-promotion"],
+    "edit-roles": ["formbuilder-edit"]
+  }
+}
+```
+
+Update the sample above, correcting the secret, roles and urls as appropriate for your environment. Save the contents to
+a file called appConfig.json. Then run the following command to create the kubernetes secret:
+
+`kubectl create secret generic formbuilder --from-file='appConfig.json=./appConfig.json'`
+
+
+#### Step 4 - Deploy FormBuilder
+
+`helm install formbuilder helm/formbuilder`

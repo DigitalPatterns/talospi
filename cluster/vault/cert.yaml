@@ -14,20 +14,20 @@ spec:
   usages:
     - server auth
     - client auth
-  commonName: "*.databases.svc.cluster.local"
+  commonName: "*.vault.svc.cluster.local"
   dnsNames:
-    - vault.databases
-    - vault-0.databases
-    - vault-1.databases
-    - vault-2.databases
-    - vault.databases.svc
-    - vault-0.databases.svc
-    - vault-1.databases.svc
-    - vault-2.databases.svc
-    - vault.databases.svc.cluster.local
-    - vault-0.databases.svc.cluster.local
-    - vault-1.databases.svc.cluster.local
-    - vault-2.databases.svc.cluster.local
+    - vault.vault
+    - vault-0.vault
+    - vault-1.vault
+    - vault-2.vault
+    - vault.vault.svc
+    - vault-0.vault.svc
+    - vault-1.vault.svc
+    - vault-2.vault.svc
+    - vault.vault.svc.cluster.local
+    - vault-0.vault.svc.cluster.local
+    - vault-1.vault.svc.cluster.local
+    - vault-2.vault.svc.cluster.local
     - localhost
   ipAddresses:
     - 127.0.0.1

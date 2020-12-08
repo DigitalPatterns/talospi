@@ -4,9 +4,9 @@ metadata:
   name: vault-issuer
 spec:
   vault:
-    path: pki_int/sign/default-svc-cluster-local
-    server: https://vault.databases.svc.cluster.local:8200
-    caBundle: CA_BUNDLE_HERE
+    path: pki_int/sign/svc-cluster-local
+    server: https://vault.vault.svc.cluster.local:8200
+    caBundle: CA_BUNDLE
     auth:
       tokenSecretRef:
         name: cert-manager-vault-token

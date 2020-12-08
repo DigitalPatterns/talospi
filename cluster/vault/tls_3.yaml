@@ -29,7 +29,7 @@ server:
       }
       storage "consul" {
         path = "vault/"
-        address = "consul-server.databases.svc.cluster.local:8501"
+        address = "consul-server.consul.svc.cluster.local:8501"
         scheme = "https"
         token = "TOKEN_HERE"
         tls_skip_verify = "true"
