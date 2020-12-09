@@ -10,5 +10,9 @@ The guides are deliberately opinionated and designed for use with our Talos Plat
 
 Please follow this link to the [Setup guides](setup/README.md)
 
+### Other Guides
+
+1. [How to setup Postman](guides/postman_oauth_setup.md)
+
 
 (c) Digital Patterns Limited 2020

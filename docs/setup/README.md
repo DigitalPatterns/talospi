@@ -21,7 +21,6 @@ The following pages describes the [parts used](parts_list.md) to build the K8s c
 12. [Install FormAPI & FormBuilder](form_services.md)
 13. [How to seed Refdata and setup the Postgrest API](refdata.md)
 
-
 ### Monitoring
 
 I use lens to monitor my cluster automatically from any machine. Follow the guide at [k8slens](https://k8slens.dev/)
