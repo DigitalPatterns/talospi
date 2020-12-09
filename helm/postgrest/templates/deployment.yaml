@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "postgrest.fullname" . }}
+  {{- if .Values.postgrest.deploymenttAnnotations }}
+  annotations:
+    {{- with .Values.postgrest.deploymenttAnnotations }}
+      {{- range $key, $value := . }}
+      {{- printf "%s: %s" $key (tpl $value $ | quote) | nindent 4 }}
+      {{- end }}
+      {{- end }}
+  {{- end }}
+  labels:
+    {{- include "postgrest.commonLabels" . | nindent 4 }}
+    service: {{ include "postgrest.fullname" . }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "postgrest.selectorLabels" . | nindent 6 }}
+  replicas: {{ .Values.postgrest.replicas }}
+  revisionHistoryLimit: 3
+  minReadySeconds: 5
+  strategy:
+    # indicate which strategy we want for rolling update
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        name: {{ include "postgrest.fullname" . }}
+        service: {{ include "postgrest.fullname" . }}
+        {{- include "postgrest.selectorLabels" . | nindent 8 }}
+          {{- with .Values.postgrest.podLabels }}
+          {{- toYaml . | nindent 8 }}
+          {{- end }}
+      annotations:
+        {{- with .Values.postgrest.podAnnotations }}
+        {{- range $key, $value := . }}
+        {{- printf "%s: %s" $key (tpl $value $ | quote) | nindent 8 }}
+        {{- end }}
+        {{- end }}
+    spec:
+      restartPolicy: {{ .Values.postgrest.restartPolicy }}
+      securityContext:
+        {{- toYaml .Values.postgrest.securityContext | nindent 8 }}
+      nodeSelector:
+        {{- with .Values.postgrest.nodeSelector }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.postgrest.image.repository }}:{{ .Values.postgrest.image.tag }}"
+        imagePullPolicy: Always
+        securityContext:
+          runAsNonRoot: true
+        ports:
+          - name: http
+            containerPort: {{ .Values.postgrest.service.targetPort }}
+            protocol: TCP
+        env:
+          - name: POSTGREST_NAME
+            value: "postgrest"
+          - name: PGRST_DB_ANON_ROLE
+            value: {{ .Values.postgrest.db.roleAnon }}
+          - name: PGRST_DB_SCHEMA
+            value: {{ .Values.postgrest.db.schema }}
+          - name: PGRST_JWT_AUD
+            value: {{ .Values.postgrest.keycloak.aud }}
+          - name: PGRST_ROLE_CLAIM_KEY
+            value: {{ .Values.postgrest.keycloak.claim }}
+          - name: PGRST_DB_URI
+            valueFrom:
+              secretKeyRef:
+                name: postgrest
+                key: dbUri
+          - name: PGRST_SERVER_PROXY_URI
+            value: "http://127.0.0.1:{{ .Values.postgrest.service.targetPort }}/"
+          - name: PGRST_DB_POOL
+            value: "30"
+          - name: PGRST_DB_POOL_TIMEOUT
+            value: "20"
+#          - name: PGRST_MAX_ROWS
+#            value: "1000"
+          - name: PGRST_JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: postgrest
+                key: jwtSecret
+        resources:
+          limits:
+            cpu: "{{ .Values.postgrest.resources.limits.cpu }}"
+            memory: "{{ .Values.postgrest.resources.limits.memory }}"
+          requests:
+            cpu: "{{ .Values.postgrest.resources.requests.cpu }}"
+            memory: "{{ .Values.postgrest.resources.requests.memory }}"
+      volumes:
+        - name: certs
+          secret:
+            secretName: {{ include "postgrest.fullname" . }}-pod-cert

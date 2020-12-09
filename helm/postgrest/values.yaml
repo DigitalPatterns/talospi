@@ -1,0 +1,43 @@
+clusterDomain: cluster.local
+postgrest:
+  replicas: 1
+
+  image:
+    repository: postgrest/postgrest
+    tag: "latest"
+
+  keycloak:
+    claim: .postgrest
+    aud: postgrest
+
+  db:
+    roleAnon: anonuser
+    schema: reference
+
+  resources:
+    limits:
+      cpu: 0.5
+      memory: 400Mi
+    requests:
+      cpu: 0.2
+      memory: 100Mi
+
+  nodeSelector: {
+    "kubernetes.io/arch": amd64
+  }
+
+  service:
+    annotations: {}
+    labels: {}
+    port: 3000
+    protocol: TCP
+    targetPort: 3000
+    issuerRefExt:
+      name: vault-issuer-ext
+      kind: ClusterIssuer
+
+  ingress:
+    name: postgrest.pi.talos.rocks
+    class: traefik
+
+

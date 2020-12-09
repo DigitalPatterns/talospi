@@ -19,6 +19,7 @@ The following pages describes the [parts used](parts_list.md) to build the K8s c
 10. [Install Redis](redis.md)
 11. [Install Keycloak](keycloak.md)
 12. [Install FormAPI & FormBuilder](form_services.md)
+13. [How to seed Refdata and setup the Postgrest API](refdata.md)
 
 
 ### Monitoring

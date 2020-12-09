@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set +x
 
+env
+
 if [[ -z ${RESET} ]];
 then
   if [[ ${RESET} = "true" ]];
@@ -13,7 +15,7 @@ then
 
     echo "Clear roles and schemas"
     export ROOT_URL="postgresql://${FLYWAY_PLACEHOLDERS_MASTERUSER}:${FLYWAY_PASSWORD}@${DB_HOSTNAME}:${DB_PORT}/${DB_DEFAULT_DBNAME}${DB_OPTIONS}"
-    psql ${ROOT_URL} -c "drop table if exists flyway_schema_history; drop role if exists ${REFERENCE_AUTHENTICATOR_USERNAME}; drop role if exists ${REFERENCE_OWNERNAME}; drop role if exists ${REFERENCE_ANONUSERNAME}; drop role if exists ${REFERENCE_SERVICEUSERNAME}; drop role if exists ${REFERENCE_READONLYUSERNAME};"
+    psql ${ROOT_URL} -c "drop schema ${DB_NAME} cascade; drop table if exists flyway_schema_history; drop role if exists ${REFERENCE_AUTHENTICATOR_USERNAME}; drop role if exists ${DB_OWNERNAME}; drop role if exists ${REFERENCE_ANONUSERNAME}; drop role if exists ${REFERENCE_SERVICEUSERNAME}; drop role if exists ${REFERENCE_READONLYUSERNAME};"
   fi
 fi
 

@@ -6,7 +6,7 @@ refdata:
     pullPolicy: Always
 
   db:
-    hostname: postgresql.databases.svc.local
+    hostname: postgresql.databases.svc.cluster.local
     schema: reference
     port: 5432
     name: reference

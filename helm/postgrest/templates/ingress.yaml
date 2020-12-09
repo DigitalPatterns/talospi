@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: {{ .Values.postgrest.ingress.class }}
+  namespace: {{ .Values.postgrest.namespace }}
+  name: {{ include "postgrest.fullname" . }}
+spec:
+  rules:
+    - host: {{ .Values.postgrest.ingress.name }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "postgrest.fullname" . }}
+                port:
+                  number: {{ .Values.postgrest.service.port }}
+  # This section is only required if TLS is to be enabled for the Ingress
+  tls:
+    - hosts:
+        - {{ .Values.postgrest.ingress.name }}
+      secretName: {{ include "postgrest.fullname" . }}-ext-cert
