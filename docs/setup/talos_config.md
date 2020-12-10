@@ -6,7 +6,7 @@ uses Vault as its backend.
 This is released as a private docker container, as such you need a docker registry secret within you namespace.
 
 ```bash
-kubectl create secret docker-registry regcred --docker-server=https://index.docker.io/v1/ \
+kubectl -n vault create secret docker-registry regcred --docker-server=https://index.docker.io/v1/ \
  --docker-username=<your-name> --docker-password=<your-pword> --docker-email=<your-email>
 ```
 

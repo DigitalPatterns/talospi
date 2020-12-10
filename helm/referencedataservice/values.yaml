@@ -8,12 +8,9 @@ referencedataservice:
     pullPolicy: Always
   fullname: talos
   domainname: pi.talos.rocks
-#  configservice:
-#    url: https://configservice.default.svc.cluster.local
-#    token: xxx
-#  aws:
-#    access_key: test
-#    secret_key: test
+  configservice:
+    url: https://configservice.vault.svc.cluster.local
+  secretsManagerEnabled: false
   springProfileActive: dev
   restartPolicy: Always
 
@@ -51,5 +48,5 @@ referencedataservice:
       kind: ClusterIssuer
 
   ingress:
-    name: postgrest.pi.talos.rocks
+    name: reference-data-service.pi.talos.rocks
     class: traefik

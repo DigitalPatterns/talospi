@@ -58,15 +58,30 @@ spec:
           {{- tpl . $ | nindent 12 }}
         {{- end }}
         env:
+          {{- if .Values.referencedataservice.secretsManagerEnabled }}
+          - name: AWS_SECRETS_MANAGER_ENABLED
+            value: {{ .Values.referencedataservice.secretsManagerEnabled | quote }}
+          - name: AWS_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: referencedataservice
+                key: awsAccessKey
+          - name: AWS_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: referencedataservice
+                key: awsSecretKey
+          {{ else }}
+          - name: CONFIG_SERVER_URL
+            value: {{ .Values.referencedataservice.configservice.url | quote }}
           - name: VAULT_TOKEN
             valueFrom:
               secretKeyRef:
                 name: referencedataservice
                 key: token
+          {{- end }}
           - name: SPRING_PROFILES_ACTIVE
             value: {{ .Values.referencedataservice.springProfileActive | quote }}
-          - name: AWS_SECRETS_MANAGER_ENABLED
-            value: "false"
         ports:
           - name: https
             containerPort: {{ .Values.referencedataservice.service.targetPort }}

@@ -28,6 +28,10 @@ kubectl create ns keycloak
 kubectl -n keycloak create secret generic keycloak --from-file=DB_PASSWORD=./keycloakDbPassword --from-literal=DB_USER=keycloak
 ```
 
+As this namespace does not yet have the RootCA in you should add it now:
+
+`kubectl -n keycloak create secret generic ca --from-file='ca.crt=./ca.crt'`
+
 
 #### Step 3 - Deploy Keycloak
 

@@ -68,11 +68,6 @@ cat ~/RootCa.crt >> ca-bundle.pem
 vault write pki_int/intermediate/set-signed certificate=@ca-bundle.pem
 ```
 
-Upload the RootCA Bundle as a secret to the namespace
-
-```bash
-kubectl -n vault create secret generic ca --from-file='ca-bundle.pem=./ca-bundle.pem'
-```
 
 #### Step 4 - Create roles to allow certificate requests 
 
@@ -267,12 +262,6 @@ cat ~/RootCa.crt >> ca-bundle-ext.pem
 vault write pki_ext/intermediate/set-signed certificate=@ca-bundle-ext.pem
 ```
 
-Upload the RootCA Bundle as a secret to the namespace
-
-```bash
-kubectl -n keycloak create secret generic ca --from-file='ca-bundle.pem=./ca.crt'
-```
-
 #### Step 4 - Create roles to allow certificate requests 
 
 Create a role to allow one for Consul and one for Cert-Manager to be able to request certificates
@@ -312,4 +301,15 @@ Create the Vault Cert issuer in kubernetes
 
 ```bash
 kubectl create -f cluster/cert-manager/vault-issuer-ext.yaml
+```
+
+## RootCA
+
+Each namespace should contain a copy of the full Internal and External Root CA chain. The best way to do this is to
+append each of the Intermediate CA's to a file in turn then apend the master RootCA last. After which you must upload
+this as a secret to each namespace.
+
+```bash
+kubectl -n vault create secret generic ca --from-file='ca.crt=./ca.crt'
+kubectl create secret generic ca --from-file='ca.crt=./ca.crt'
 ```

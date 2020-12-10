@@ -100,3 +100,58 @@ added to them.
 
 An OpenAPI (swagger) schema will now be avaliable at the route of the postgrest domain 
 [https://postgrest.pi.talos.rocks/](https://postgrest.pi.talos.rocks/). This is best viewed when loaded into a swagger UI.
+
+
+### Reference Data Service UI
+
+The enterprise talos version of the reference data service uses the talos config service for its secrets; The opensource
+version uses AWS Secrets manager. To use the open source version replace the Vault steps below with the appropriate
+setup steps for secrets manager, ensuring there is a set of AWS access credentials that has access to the required 
+secret.
+
+#### Vault setup
+
+Create a policy in Vault for the referencedataservice and apply the token given as a kubernetes secret. 
+Replace *<VAULT_TOKEN>* with the root vault token. `export ENV=dev` Where the environment is 'Development (dev)' or 
+'Production (prod)'. For other environments you will need to update the policy hcl file to match.
+
+```bash
+kubectl -n vault port-forward service/vault 8200:8200 &
+export VAULT_ADDR="https://127.0.0.1:8200"
+export VAULT_TOKEN="<VAULT_TOKEN>"
+vault policy write -tls-skip-verify reference-data-service cluster/policies/reference-data-service-${ENV}.hcl
+vault token create -tls-skip-verify -period=8760h -policy=reference-data-service -explicit-max-ttl=8760h
+kubectl create secret generic referencedataservice --from-literal=token=$TOKEN
+```
+
+
+If you are using the enterprise version you need to ensure you have registry credential setup in the environment that
+allow access to docker hub. This can be done with the following command:
+
+```bash
+kubectl create secret docker-registry regcred --docker-server=https://index.docker.io/v1/ \
+ --docker-username=<your-name> --docker-password=<your-pword> --docker-email=<your-email>
+```
+
+
+Install the Reference data service UI to the cluster
+
+###### Enterprise version
+
+```bash
+helm -n vault install referencedataservice helm/referencedataservice
+```
+
+##### Opensource version
+
+Create the *referencedataservice* secret with the AWS credentials that enable the service to talk to the AWS secrets 
+manager.
+
+```bash
+kubectl create secret generic referencedataservice --from-literal=awsAccessKey=$AWS_ACCESS_KEY \
+  --from-literal=awsSecretKey=$AWS_SECRET_KEY
+helm -n vault install referencedataservice helm/referencedataservice \
+  --set referencedataservice.secretsManagerEnabled=true \
+  --set referencedataservice.image.repository: digitalpatterns/reference-data-service \
+  --set referencedataservice.image.tag: latest
+```
