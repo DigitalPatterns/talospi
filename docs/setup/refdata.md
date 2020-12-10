@@ -201,7 +201,7 @@ Install the Reference data service UI to the cluster
 ##### Enterprise version
 
 ```bash
-helm -n vault install referencedataservice helm/referencedataservice
+helm install referencedataservice helm/referencedataservice
 ```
 
 ##### Opensource version
@@ -212,7 +212,7 @@ manager.
 ```bash
 kubectl create secret generic referencedataservice --from-literal=awsAccessKey=$AWS_ACCESS_KEY \
   --from-literal=awsSecretKey=$AWS_SECRET_KEY
-helm -n vault install referencedataservice helm/referencedataservice \
+helm install referencedataservice helm/referencedataservice \
   --set referencedataservice.secretsManagerEnabled=true \
   --set referencedataservice.image.repository: digitalpatterns/reference-data-service \
   --set referencedataservice.image.tag: latest
