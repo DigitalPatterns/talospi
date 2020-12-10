@@ -1,7 +1,8 @@
 # RefData
 
-To enable the Ref data service there is two parts. The first is to seed the Postgres database with the DB schema using 
-the refdata helm job. The second installs the [Postgrest API](https://postgrest.org)
+To enable the Ref data service there is three parts. The first is to seed the Postgres database with the DB schema using 
+the refdata helm job. The second installs the [Postgrest API](https://postgrest.org), lastly the third setups the 
+reference data service ui.
 
 ### RefData Seed
 
@@ -104,10 +105,16 @@ An OpenAPI (swagger) schema will now be avaliable at the route of the postgrest 
 
 ### Reference Data Service UI
 
-The enterprise talos version of the reference data service uses the talos config service for its secrets; The opensource
+The enterprise Talos version of the reference data service uses the Talos config service for its secrets; The opensource
 version uses AWS Secrets manager. To use the open source version replace the Vault steps below with the appropriate
 setup steps for secrets manager, ensuring there is a set of AWS access credentials that has access to the required 
 secret.
+
+For the reference service ui to be fully functional, it requires the complete Talos Stack. To enable New dataset 
+requests, updates and deletes this needs the workflow engine backend, the formAPI service and the workflow portal 
+frontend. This is because before changes to data are allowed they need to be approved. Approvals are controlled through 
+the use of BPMN's.
+
 
 #### Vault setup
 
@@ -136,7 +143,7 @@ kubectl create secret docker-registry regcred --docker-server=https://index.dock
 
 Install the Reference data service UI to the cluster
 
-###### Enterprise version
+##### Enterprise version
 
 ```bash
 helm -n vault install referencedataservice helm/referencedataservice
