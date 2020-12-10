@@ -140,6 +140,61 @@ kubectl create secret docker-registry regcred --docker-server=https://index.dock
  --docker-username=<your-name> --docker-password=<your-pword> --docker-email=<your-email>
 ```
 
+##### Vault Secret setup
+
+In Vault two sets of secrets are required. The application will read most of the settings from the shared config secret.
+[talos_config](talos_config.md)
+
+In addition, you need to create a new secret in the secrets key value store under the path
+*reference-data-service/$ENV* 
+
+[https://localhost:8200/ui/vault/secrets/secret/list](https://localhost:8200/ui/vault/secrets/secret/list)
+
+```json
+{
+  "addDataRowProcess": "addDataRowProcess",
+  "auth.clientId": "referencedataservice",
+  "deleteDataRowProcess": "deleteDataRowProcess",
+  "deleteDataSetProcess": "deleteDataSetProcess",
+  "editDataRowProcess": "editDataRowProcess",
+  "newDataSetForm": "newDataSetRequest",
+  "newDataSetProcess": "newDataSetRequest",
+  "uiEnvironment": "dev",
+  "uiVersion": "alpha"
+}
+```
+
+![](../images/refdataui/reference-secret.png)
+
+
+##### AWS Secrets Setup
+
+If using secrets manager then the following is an example of the secrets that should be added to a secret named
+*/secret/reference-data-service_$ENV*
+
+```json
+{
+  "server-port": "8443",
+  "ssl.enabled": true,
+  "auth.url": "https://keycloak.pi.talos.rocks",
+  "fileUploadApi.url": "https://fileuploadservice.pi.talos.rocks",
+  "refData.url": "https://postgrest.pi.talos.rocks",
+  "formApi.url": "https://formapi.pi.talos.rocks",
+  "workflowApi.url": "https://engine.pi.talos.rocks",
+  "auth.realm": "rocks",
+  "auth.clientId": "referencedataservice",
+  "uiEnvironment": "dev",
+  "uiVersion": "alpha",
+  "tracing.enabled": true,
+  "newDataSetForm": "newDataSetRequest",
+  "newDataSetProcess": "newDataSetRequest",
+  "deleteDataSetProcess": "deleteDataSetProcess",
+  "addDataRowProcess": "addDataRowProcess",
+  "editDataRowProcess": "editDataRowProcess",
+  "deleteDataRowProcess": "deleteDataRowProcess"
+}
+```
+
 
 Install the Reference data service UI to the cluster
 
@@ -162,3 +217,5 @@ helm -n vault install referencedataservice helm/referencedataservice \
   --set referencedataservice.image.repository: digitalpatterns/reference-data-service \
   --set referencedataservice.image.tag: latest
 ```
+
+
