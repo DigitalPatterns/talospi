@@ -67,7 +67,7 @@ spec:
           - name: SSL_ENABLED
             value: "true"
           - name: SERVER_PORT
-            value: "8443"
+            value: "{{ .Values.configservice.service.targetPort }}"
           - name: VAULT_TOKEN
             valueFrom:
               secretKeyRef:
@@ -82,14 +82,14 @@ spec:
             command:
               - bash
               - -c
-              - "curl --location --request GET https://localhost:8443/actuator/health --header \"Authorization: Bearer ${VAULT_TOKEN}\" -k"
+              - "curl --location --request GET https://localhost:{{ .Values.configservice.service.targetPort }}/actuator/health --header \"Authorization: Bearer ${VAULT_TOKEN}\" -k"
           initialDelaySeconds: 60
           timeoutSeconds: 5
         readinessProbe:
           httpGet:
             scheme: HTTPS
             path: /actuator/info
-            port: 8443
+            port: {{ .Values.configservice.service.targetPort }}
           initialDelaySeconds: 60
           timeoutSeconds: 3
         resources:
@@ -107,6 +107,6 @@ spec:
             secretName: {{ include "configservice.fullname" . }}-pod-cert
         - name: cacerts
           secret:
-            secretName: consul-ca-cert
+            secretName: ca
       imagePullSecrets:
         - name: regcred

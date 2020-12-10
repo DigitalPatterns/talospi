@@ -1,23 +1,20 @@
 clusterDomain: cluster.local
-## Optionally override the fully qualified name
-# fullnameOverride: workflowservice
-# nameOverride: workflowservice
-
-configservice:
+referencedataservice:
   replicas: 1
 
   image:
-    repository: digitalpatterns/config-service
-    # Overrides the image tag whose default is the chart version.
+    repository: digitalpatterns/talos-reference-data-service
     tag: latest
     pullPolicy: Always
+  fullname: talos
   domainname: pi.talos.rocks
-  namespace: vault
-  vault:
-    host: vault.databases.svc.cluster.local
-    port: 8200
-    scheme: https
-
+#  configservice:
+#    url: https://configservice.default.svc.cluster.local
+#    token: xxx
+#  aws:
+#    access_key: test
+#    secret_key: test
+  springProfileActive: dev
   restartPolicy: Always
 
   securityContext:
@@ -33,12 +30,11 @@ configservice:
   resources:
     requests:
       memory: "256Mi"
-      cpu: "256m"
+      cpu: "200m"
     limits:
       memory: "512Mi"
-      cpu: "512m"
+      cpu: "500m"
 
-  ## Extra annotations to be added to statefulset
   deploymenttAnnotations: {}
 
   service:
@@ -50,3 +46,10 @@ configservice:
     issuerRef:
       name: vault-issuer
       kind: ClusterIssuer
+    issuerRefExt:
+      name: vault-issuer-ext
+      kind: ClusterIssuer
+
+  ingress:
+    name: postgrest.pi.talos.rocks
+    class: traefik

@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: {{ .Values.referencedataservice.ingress.class }}
+  namespace: {{ .Values.referencedataservice.namespace }}
+  name: {{ include "referencedataservice.fullname" . }}
+spec:
+  rules:
+    - host: {{ .Values.referencedataservice.ingress.name }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "referencedataservice.fullname" . }}
+                port:
+                  number: {{ .Values.referencedataservice.service.port }}
+  # This section is only required if TLS is to be enabled for the Ingress
+  tls:
+    - hosts:
+        - {{ .Values.referencedataservice.ingress.name }}
+      secretName: {{ include "referencedataservice.fullname" . }}-ext-cert

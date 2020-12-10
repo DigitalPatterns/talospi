@@ -1,8 +1,8 @@
-{{- $service := .Values.configservice.service -}}
+{{- $service := .Values.referencedataservice.service -}}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "configservice.fullname" . }}
+  name: {{ include "referencedataservice.fullname" . }}
   {{- with $service.annotations }}
   annotations:
     {{- range $key, $value := . }}
@@ -10,7 +10,7 @@ metadata:
       {{- end }}
       {{- end }}
   labels:
-    {{- include "configservice.commonLabels" . | nindent 4 }}
+    {{- include "referencedataservice.commonLabels" . | nindent 4 }}
       {{- with $service.labels }}
       {{- toYaml . | nindent 4 }}
       {{- end }}
@@ -21,4 +21,4 @@ spec:
       targetPort: {{ $service.targetPort }}
       protocol: {{ $service.protocol }}
   selector:
-    {{- include "configservice.selectorLabels" . | nindent 4 }}
+    {{- include "referencedataservice.selectorLabels" . | nindent 4 }}
