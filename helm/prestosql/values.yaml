@@ -1,0 +1,77 @@
+presto:
+  workers: 0
+  namespace: databases
+  node:
+    environment: production
+    dataDir: /data/presto
+    pluginDir: /usr/lib/presto/plugin
+  log:
+    presto:
+      level: INFO
+  config:
+    path: /usr/lib/presto/etc
+    http:
+      port: 8080
+      protocol: TCP
+    https:
+      port: 8443
+    query:
+      maxMemory: "4GB"
+      maxMemoryPerNode: "1GB"
+  jvm:
+    maxHeapSize: "8G"
+    gcMethod:
+      type: "UseG1GC"
+      g1:
+        heapRegionSize: "32M"
+  pv:
+    storage:
+      capacity: 5Gi
+      className: longhorn
+
+  image:
+    repository: digitalpatterns/presto
+    tag: latest
+    pullPolicy: Always
+  securityContext:
+    fsGroup: 1000
+
+  containerSecurityContext:
+    runAsUser: 1000
+    runAsNonRoot: true
+
+  service:
+    annotations: {}
+    labels: {}
+    port: 8443
+    protocol: TCP
+    targetPort: 8443
+    issuerRef:
+      name: vault-issuer
+      kind: ClusterIssuer
+    issuerRefExt:
+      name: vault-issuer-ext
+      kind: ClusterIssuer
+
+  ingress:
+    name: presto.pi.talos.rocks
+    class: traefik
+
+  resources:
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+     limits:
+      cpu: 800m
+      memory: 512Mi
+     requests:
+      cpu: 400m
+      memory: 256Mi
+
+  nodeSelector:
+    kubernetes.io/arch: amd64
+
+  tolerations: []
+
+  affinity: {}

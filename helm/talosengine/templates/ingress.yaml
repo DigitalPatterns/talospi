@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: {{ .Values.talosengine.ingress.class }}
+    ingress.kubernetes.io/protocol: https
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/backend-protocol: https
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  namespace: {{ .Values.talosengine.namespace }}
+  name: {{ include "talosengine.fullname" . }}
+spec:
+  rules:
+    - host: {{ .Values.talosengine.ingress.name }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "talosengine.fullname" . }}
+                port:
+                  number: {{ .Values.talosengine.service.port }}
+  # This section is only required if TLS is to be enabled for the Ingress
+  tls:
+    - hosts:
+        - {{ .Values.talosengine.ingress.name }}
+      secretName: {{ include "talosengine.fullname" . }}-ext-cert

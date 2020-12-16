@@ -159,6 +159,8 @@ In addition, you need to create a new secret in the secrets key value store unde
   "editDataRowProcess": "editDataRowProcess",
   "newDataSetForm": "newDataSetRequest",
   "newDataSetProcess": "newDataSetRequest",
+  "editDataRowForm":  "editDataRowForm",
+  "deleteDataRowForm": "deleteDataRowForm",
   "uiEnvironment": "dev",
   "uiVersion": "alpha"
 }
@@ -191,7 +193,9 @@ If using secrets manager then the following is an example of the secrets that sh
   "deleteDataSetProcess": "deleteDataSetProcess",
   "addDataRowProcess": "addDataRowProcess",
   "editDataRowProcess": "editDataRowProcess",
-  "deleteDataRowProcess": "deleteDataRowProcess"
+  "deleteDataRowProcess": "deleteDataRowProcess",
+  "editDataRowForm":  "editDataRowForm",
+  "deleteDataRowForm": "deleteDataRowForm"
 }
 ```
 

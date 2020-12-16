@@ -15,7 +15,7 @@ metadata:
     {{- include "mongodb.commonLabels" . | nindent 4 }}
     service: {{ include "mongodb.fullname" . }}
 spec:
-  serviceName: "mongodb"
+  serviceName: {{ include "mongodb.fullname" . | quote }}
   replicas: {{ .Values.mongodb.replicas }}
   revisionHistoryLimit: 3
   selector:
@@ -76,10 +76,10 @@ spec:
           - |
             cp /certs/tls.crt /certificates/mongo.pem && \
             printf "\n" >> /certificates/mongo.pem && \
-            echo -en "$(cat /ca/ca-bundle.pem)" >> /certificates/mongo.pem && \
+            echo -en "$(cat /ca/ca.crt)" >> /certificates/mongo.pem && \
             printf "\n" >> /certificates/mongo.pem && \
             echo -en "$(cat /certs/tls.key)" >> /certificates/mongo.pem && \
-            cp /ca/ca-bundle.pem /certificates/ca.crt && \
+            cp /ca/ca.crt /certificates/ca.crt && \
             cp /keyfile/mongo.key /certificates/keyfile && \
             chown mongodb /certificates/* && \
             chmod 0400 /certificates/*  && \

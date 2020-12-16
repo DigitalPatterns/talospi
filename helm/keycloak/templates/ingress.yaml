@@ -3,6 +3,8 @@ kind: Ingress
 metadata:
   annotations:
     kubernetes.io/ingress.class: {{ .Values.keycloak.ingress.class }}
+    ingress.kubernetes.io/protocol: http
+    traefik.ingress.kubernetes.io/redirect-entry-point: https
   namespace: {{ .Values.keycloak.namespace }}
   name: {{ include "keycloak.fullname" . }}
 spec:

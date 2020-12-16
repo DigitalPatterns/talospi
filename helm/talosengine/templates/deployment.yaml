@@ -1,0 +1,120 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "talosengine.fullname" . }}
+  {{- if .Values.talosengine.deploymenttAnnotations }}
+  annotations:
+    {{- with .Values.talosengine.deploymenttAnnotations }}
+      {{- range $key, $value := . }}
+      {{- printf "%s: %s" $key (tpl $value $ | quote) | nindent 4 }}
+      {{- end }}
+      {{- end }}
+  {{- end }}
+  labels:
+    {{- include "talosengine.commonLabels" . | nindent 4 }}
+    service: {{ include "talosengine.fullname" . }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "talosengine.selectorLabels" . | nindent 6 }}
+  replicas: {{ .Values.talosengine.replicas }}
+  revisionHistoryLimit: 3
+  minReadySeconds: 5
+  strategy:
+    # indicate which strategy we want for rolling update
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        name: {{ include "talosengine.fullname" . }}
+        service: {{ include "talosengine.fullname" . }}
+        {{- include "talosengine.selectorLabels" . | nindent 8 }}
+          {{- with .Values.talosengine.podLabels }}
+          {{- toYaml . | nindent 8 }}
+          {{- end }}
+      annotations:
+        {{- with .Values.talosengine.podAnnotations }}
+        {{- range $key, $value := . }}
+        {{- printf "%s: %s" $key (tpl $value $ | quote) | nindent 8 }}
+        {{- end }}
+        {{- end }}
+    spec:
+      restartPolicy: {{ .Values.talosengine.restartPolicy }}
+      securityContext:
+        {{- toYaml .Values.talosengine.securityContext | nindent 8 }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.talosengine.image.repository }}:{{ .Values.talosengine.image.tag }}"
+        imagePullPolicy: {{ .Values.talosengine.image.pullPolicy }}
+        securityContext:
+          {{- toYaml .Values.talosengine.containerSecurityContext | nindent 12 }}
+        {{- with .Values.talosengine.lifecycleHooks }}
+        lifecycle:
+          {{- tpl . $ | nindent 12 }}
+        {{- end }}
+        command: ["/bin/sh"]
+        args: ["-c", "/app/run.sh -Djava.security.egd=file:/dev/./urandom -Djavax.net.ssl.keyStore=/etc/keystore/keystore.p12 -Djavax.net.ssl.keyStorePassword=changeit -Djavax.net.ssl.trustStore=/etc/keystore/cacerts -Djavax.net.ssl.trustStoreType=pkcs12 -Djavax.net.ssl.trustStorePassword=changeit -Djava.library.path=/usr/lib/$(uname -p)-linux-gnu -jar /app/talos-engine.jar"]
+        env:
+          {{- if .Values.talosengine.secretsManagerEnabled }}
+          - name: AWS_SECRETS_MANAGER_ENABLED
+            value: {{ .Values.talosengine.secretsManagerEnabled | quote }}
+          - name: AWS_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: talosengine
+                key: awsAccessKey
+          - name: AWS_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: talosengine
+                key: awsSecretKey
+          {{ else }}
+          - name: CONFIG_SERVER_URL
+            value: {{ .Values.talosengine.configservice.url | quote }}
+          - name: CONFIG_SERVER_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: talosengine
+                key: token
+          {{- end }}
+          - name: SPRING_PROFILES_ACTIVE
+            value: {{ .Values.talosengine.springProfileActive | quote }}
+        ports:
+          - name: https
+            containerPort: {{ .Values.talosengine.service.targetPort }}
+            protocol: TCP
+        livenessProbe:
+          httpGet:
+            scheme: HTTPS
+            path: /camunda/actuator/health
+            port: {{ .Values.talosengine.service.targetPort }}
+          initialDelaySeconds: 360
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            scheme: HTTPS
+            path: /camunda/engine
+            port: {{ .Values.talosengine.service.targetPort }}
+          initialDelaySeconds: 240
+          timeoutSeconds: 5
+        resources:
+          {{- toYaml .Values.talosengine.resources | nindent 12 }}
+        volumeMounts:
+          - name: certs
+            mountPath: /certs
+            readOnly: true
+          - name: cacerts
+            mountPath: /cacerts
+            readOnly: true
+      volumes:
+        - name: certs
+          secret:
+            secretName: {{ include "talosengine.fullname" . }}-pod-cert
+        - name: cacerts
+          secret:
+            secretName: ca
+      imagePullSecrets:
+        - name: regcred

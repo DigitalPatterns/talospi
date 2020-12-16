@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "supportingservices.fullname" . }}
+  {{- if .Values.supportingservices.deploymenttAnnotations }}
+  annotations:
+    {{- with .Values.supportingservices.deploymenttAnnotations }}
+      {{- range $key, $value := . }}
+      {{- printf "%s: %s" $key (tpl $value $ | quote) | nindent 4 }}
+      {{- end }}
+      {{- end }}
+  {{- end }}
+  labels:
+    {{- include "supportingservices.commonLabels" . | nindent 4 }}
+    service: {{ include "supportingservices.fullname" . }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "supportingservices.selectorLabels" . | nindent 6 }}
+  replicas: {{ .Values.supportingservices.replicas }}
+  revisionHistoryLimit: 3
+  minReadySeconds: 5
+  strategy:
+    # indicate which strategy we want for rolling update
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        name: {{ include "supportingservices.fullname" . }}
+        service: {{ include "supportingservices.fullname" . }}
+        {{- include "supportingservices.selectorLabels" . | nindent 8 }}
+          {{- with .Values.supportingservices.podLabels }}
+          {{- toYaml . | nindent 8 }}
+          {{- end }}
+      annotations:
+        {{- with .Values.supportingservices.podAnnotations }}
+        {{- range $key, $value := . }}
+        {{- printf "%s: %s" $key (tpl $value $ | quote) | nindent 8 }}
+        {{- end }}
+        {{- end }}
+    spec:
+      restartPolicy: {{ .Values.supportingservices.restartPolicy }}
+      securityContext:
+        {{- toYaml .Values.supportingservices.securityContext | nindent 8 }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.supportingservices.image.repository }}:{{ .Values.supportingservices.image.tag }}"
+        imagePullPolicy: {{ .Values.supportingservices.image.pullPolicy }}
+        securityContext:
+          {{- toYaml .Values.supportingservices.containerSecurityContext | nindent 12 }}
+        {{- with .Values.supportingservices.lifecycleHooks }}
+        lifecycle:
+          {{- tpl . $ | nindent 12 }}
+        {{- end }}
+        command: ["/bin/sh"]
+        args: ["-c", "/app/run.sh -Djava.security.egd=file:/dev/./urandom  -Djavax.net.ssl.keyStore=/etc/keystore/keystore.p12 -Djavax.net.ssl.keyStorePassword=changeit -Djavax.net.ssl.trustStore=/etc/keystore/cacerts -Djavax.net.ssl.trustStoreType=pkcs12 -Djavax.net.ssl.trustStorePassword=changeit -Djava.library.path=/usr/lib/$(uname -p)-linux-gnu -jar /app/talos-support.jar"]
+        env:
+          - name: CONFIG_SERVER_URL
+            value: {{ .Values.supportingservices.configservice.url | quote }}
+          - name: CONFIG_SERVER_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: supportingservices
+                key: token
+          - name: SPRING_PROFILES_ACTIVE
+            value: {{ .Values.supportingservices.springProfileActive | quote }}
+        ports:
+          - name: https
+            containerPort: {{ .Values.supportingservices.service.targetPort }}
+            protocol: TCP
+        livenessProbe:
+          httpGet:
+            scheme: HTTPS
+            path: /actuator/health
+            port: {{ .Values.supportingservices.service.targetPort }}
+          initialDelaySeconds: 360
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            scheme: HTTPS
+            path: /actuator/info
+            port: {{ .Values.supportingservices.service.targetPort }}
+          initialDelaySeconds: 360
+          timeoutSeconds: 3
+        resources:
+          {{- toYaml .Values.supportingservices.resources | nindent 12 }}
+        volumeMounts:
+          - name: certs
+            mountPath: /certs
+            readOnly: true
+          - name: cacerts
+            mountPath: /cacerts
+            readOnly: true
+      volumes:
+        - name: certs
+          secret:
+            secretName: {{ include "supportingservices.fullname" . }}-pod-cert
+        - name: cacerts
+          secret:
+            secretName: ca
+      imagePullSecrets:
+        - name: regcred

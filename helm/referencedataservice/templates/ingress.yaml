@@ -3,6 +3,8 @@ kind: Ingress
 metadata:
   annotations:
     kubernetes.io/ingress.class: {{ .Values.referencedataservice.ingress.class }}
+    ingress.kubernetes.io/protocol: https
+    traefik.ingress.kubernetes.io/redirect-entry-point: https
   namespace: {{ .Values.referencedataservice.namespace }}
   name: {{ include "referencedataservice.fullname" . }}
 spec:

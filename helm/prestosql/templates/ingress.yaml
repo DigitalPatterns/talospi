@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: {{ .Values.presto.ingress.class }}
+    ingress.kubernetes.io/protocol: http
+    traefik.ingress.kubernetes.io/redirect-entry-point: https
+  namespace: {{ .Values.presto.namespace }}
+  name: {{ include "presto.fullname" . }}
+spec:
+  rules:
+    - host: {{ .Values.presto.ingress.name }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "presto.fullname" . }}-coordinator
+                port:
+                  number: {{ .Values.presto.service.port }}
+  # This section is only required if TLS is to be enabled for the Ingress
+  tls:
+    - hosts:
+        - {{ .Values.presto.ingress.name }}
+      secretName: {{ include "presto.fullname" . }}-ext-cert

@@ -1,0 +1,51 @@
+clusterDomain: cluster.local
+## Optionally override the fully qualified name
+# fullnameOverride: workflowservice
+# nameOverride: workflowservice
+
+notification:
+  replicas: 1
+
+  image:
+    repository: digitalpatterns/talos-notification-gateway
+    # Overrides the image tag whose default is the chart version.
+    tag: "latest"
+    pullPolicy: Always
+  domainname: pi.talos.rocks
+  namespace: default
+  configservice:
+    url: https://configservice.vault.svc.cluster.local
+  secretsManagerEnabled: false
+  springProfileActive: dev
+  restartPolicy: Always
+
+  securityContext:
+    fsGroup: 1000
+
+  containerSecurityContext:
+    runAsUser: 1000
+    runAsNonRoot: true
+
+  podLabels: {}
+  podAnnotations: {}
+
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+  ## Extra annotations to be added to statefulset
+  deploymenttAnnotations: {}
+
+  service:
+    annotations: {}
+    labels: {}
+    port: 443
+    protocol: TCP
+    targetPort: 8443
+    issuerRef:
+      name: vault-issuer
+      kind: ClusterIssuer

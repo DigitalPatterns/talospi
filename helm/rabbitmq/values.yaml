@@ -20,9 +20,7 @@ rabbitmq:
 
   podLabels: {}
   podAnnotations: {}
-  selectorLabels: {
-    disktype: ssd
-  }
+  selectorLabels: {}
 
   auth:
     tls:
@@ -44,7 +42,7 @@ rabbitmq:
   pv:
     storage:
       capacity: 2Gi
-      className: rook-ceph-block
+      className: longhorn
 
   service:
     annotations: {}

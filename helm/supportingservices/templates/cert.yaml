@@ -1,0 +1,27 @@
+{{- $service := .Values.supportingservices.service -}}
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: {{ include "supportingservices.fullname" . }}-pod-cert
+spec:
+  secretName: {{ include "supportingservices.fullname" . }}-pod-cert
+  duration: 2160h # 90d
+  renewBefore: 360h # 15d
+  isCA: false
+  keySize: 2048
+  keyAlgorithm: rsa
+  keyEncoding: pkcs1
+  issuerRef:
+    name: {{ $service.issuerRef.name }}
+    kind: {{ $service.issuerRef.kind }}
+  usages:
+    - server auth
+    - client auth
+  dnsNames:
+    - {{ include "supportingservices.fullname" . }}
+    - {{ include "supportingservices.fullname" . }}.{{ .Values.supportingservices.namespace }}
+    - {{ include "supportingservices.fullname" . }}.{{ .Values.supportingservices.namespace }}.svc
+    - {{ include "supportingservices.fullname" . }}.{{ .Values.supportingservices.namespace }}.svc.cluster.local
+    - localhost
+  ipAddresses:
+    - 127.0.0.1

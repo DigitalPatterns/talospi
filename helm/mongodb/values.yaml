@@ -21,7 +21,7 @@ mongodb:
   podLabels: {}
   podAnnotations: {}
   selectorLabels: {
-    disktype: ssd
+#    disktype: ssd
   }
 
   resources:
@@ -38,7 +38,7 @@ mongodb:
   pv:
     storage:
       capacity: 10Gi
-      className: rook-ceph-block
+      className: longhorn
 
   service:
     annotations: {}

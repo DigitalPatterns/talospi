@@ -52,7 +52,7 @@ spec:
         securityContext:
           {{- toYaml .Values.referencedataservice.containerSecurityContext | nindent 12 }}
         command: ["/bin/sh"]
-        args: ["-c", "/app/run.sh -Djava.security.egd=file:/dev/./urandom -Djavax.net.ssl.keyStore=/etc/keystore/keystore.p12 -Djavax.net.ssl.keyStorePassword=changeit -Djavax.net.ssl.trustStore=/etc/keystore/cacerts -Djavax.net.ssl.trustStoreType=pkcs12 -Djavax.net.ssl.trustStorePassword=changeit -jar /app/reference-data-service.jar"]
+        args: ["-c", "/app/run.sh -Djava.security.egd=file:/dev/./urandom -Djavax.net.ssl.keyStore=/etc/keystore/keystore.p12 -Djavax.net.ssl.keyStorePassword=changeit -Djavax.net.ssl.trustStore=/etc/keystore/cacerts -Djavax.net.ssl.trustStoreType=pkcs12 -Djavax.net.ssl.trustStorePassword=changeit -Djava.library.path=/usr/lib/$(uname -p)-linux-gnu -jar /app/reference-data-service.jar"]
         {{- with .Values.referencedataservice.lifecycleHooks }}
         lifecycle:
           {{- tpl . $ | nindent 12 }}
@@ -74,7 +74,7 @@ spec:
           {{ else }}
           - name: CONFIG_SERVER_URL
             value: {{ .Values.referencedataservice.configservice.url | quote }}
-          - name: VAULT_TOKEN
+          - name: CONFIG_SERVER_TOKEN
             valueFrom:
               secretKeyRef:
                 name: referencedataservice
@@ -91,24 +91,30 @@ spec:
             scheme: HTTPS
             path: /actuator/info
             port: {{ .Values.referencedataservice.service.targetPort }}
-          initialDelaySeconds: 120
+          initialDelaySeconds: 180
           timeoutSeconds: 5
         readinessProbe:
           httpGet:
             scheme: HTTPS
             path: /actuator/health
             port: {{ .Values.referencedataservice.service.targetPort }}
-          initialDelaySeconds: 30
-          timeoutSeconds: 1
+          initialDelaySeconds: 60
+          timeoutSeconds: 5
         resources:
           {{- toYaml .Values.referencedataservice.resources | nindent 12 }}
         volumeMounts:
           - name: certs
             mountPath: /certs
             readOnly: true
+          - name: cacerts
+            mountPath: /cacerts
+            readOnly: true
       volumes:
         - name: certs
           secret:
             secretName: {{ include "referencedataservice.fullname" . }}-pod-cert
+        - name: cacerts
+          secret:
+            secretName: ca
       imagePullSecrets:
         - name: regcred

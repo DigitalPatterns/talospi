@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: {{ .Values.talosui.ingress.class }}
+    ingress.kubernetes.io/protocol: https
+    traefik.ingress.kubernetes.io/redirect-entry-point: https
+  namespace: {{ .Values.talosui.namespace }}
+  name: {{ include "talosui.fullname" . }}
+spec:
+  rules:
+    - host: {{ .Values.talosui.ingress.name }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "talosui.fullname" . }}
+                port:
+                  number: {{ .Values.talosui.service.port }}
+  # This section is only required if TLS is to be enabled for the Ingress
+  tls:
+    - hosts:
+        - {{ .Values.talosui.ingress.name }}
+      secretName: {{ include "talosui.fullname" . }}-ext-cert

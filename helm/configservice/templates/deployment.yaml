@@ -56,7 +56,7 @@ spec:
           {{- tpl . $ | nindent 12 }}
         {{- end }}
         command: ["/bin/sh"]
-        args: ["-c", "/app/run.sh -Djava.security.egd=file:/dev/./urandom -Djavax.net.ssl.keyStore=/etc/keystore/keystore.p12 -Djavax.net.ssl.keyStorePassword=changeit -Djavax.net.ssl.trustStore=/etc/keystore/cacerts -Djavax.net.ssl.trustStoreType=pkcs12 -Djavax.net.ssl.trustStorePassword=changeit -jar  /app/talos-config-server.jar"]
+        args: ["-c", "/app/run.sh -Djava.security.egd=file:/dev/./urandom -Djavax.net.ssl.keyStore=/etc/keystore/keystore.p12 -Djavax.net.ssl.keyStorePassword=changeit -Djavax.net.ssl.trustStore=/etc/keystore/cacerts -Djavax.net.ssl.trustStoreType=pkcs12 -Djavax.net.ssl.trustStorePassword=changeit -Djava.library.path=/usr/lib/$(uname -p)-linux-gnu -jar  /app/talos-config-server.jar"]
         env:
           - name: VAULT_PORT
             value: {{ .Values.configservice.vault.port | quote }}
@@ -78,20 +78,19 @@ spec:
             containerPort: 8443
             protocol: TCP
         livenessProbe:
-          exec:
-            command:
-              - bash
-              - -c
-              - "curl --location --request GET https://localhost:{{ .Values.configservice.service.targetPort }}/actuator/health --header \"Authorization: Bearer ${VAULT_TOKEN}\" -k"
-          initialDelaySeconds: 60
-          timeoutSeconds: 5
+          httpGet:
+            scheme: HTTPS
+            path: /health
+            port: {{ .Values.configservice.service.targetPort }}
+          initialDelaySeconds: 180
+          timeoutSeconds: 10
         readinessProbe:
           httpGet:
             scheme: HTTPS
-            path: /actuator/info
+            path: /health
             port: {{ .Values.configservice.service.targetPort }}
-          initialDelaySeconds: 60
-          timeoutSeconds: 3
+          initialDelaySeconds: 180
+          timeoutSeconds: 10
         resources:
           {{- toYaml .Values.configservice.resources | nindent 12 }}
         volumeMounts:

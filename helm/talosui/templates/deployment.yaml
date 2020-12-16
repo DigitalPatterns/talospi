@@ -1,0 +1,120 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "talosui.fullname" . }}
+  {{- if .Values.talosui.deploymenttAnnotations }}
+  annotations:
+    {{- with .Values.talosui.deploymenttAnnotations }}
+      {{- range $key, $value := . }}
+      {{- printf "%s: %s" $key (tpl $value $ | quote) | nindent 4 }}
+      {{- end }}
+      {{- end }}
+  {{- end }}
+  labels:
+    {{- include "talosui.commonLabels" . | nindent 4 }}
+    service: {{ include "talosui.fullname" . }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "talosui.selectorLabels" . | nindent 6 }}
+  replicas: {{ .Values.talosui.replicas }}
+  revisionHistoryLimit: 3
+  minReadySeconds: 5
+  strategy:
+    # indicate which strategy we want for rolling update
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        name: {{ include "talosui.fullname" . }}
+        service: {{ include "talosui.fullname" . }}
+        {{- include "talosui.selectorLabels" . | nindent 8 }}
+          {{- with .Values.talosui.podLabels }}
+          {{- toYaml . | nindent 8 }}
+          {{- end }}
+      annotations:
+        {{- with .Values.talosui.podAnnotations }}
+        {{- range $key, $value := . }}
+        {{- printf "%s: %s" $key (tpl $value $ | quote) | nindent 8 }}
+        {{- end }}
+        {{- end }}
+    spec:
+      restartPolicy: {{ .Values.talosui.restartPolicy }}
+      securityContext:
+        {{- toYaml .Values.talosui.securityContext | nindent 8 }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.talosui.image.repository }}:{{ .Values.talosui.image.tag }}"
+        imagePullPolicy: {{ .Values.talosui.image.pullPolicy }}
+        securityContext:
+          {{- toYaml .Values.talosui.containerSecurityContext | nindent 12 }}
+        command: ["/bin/sh"]
+        args: ["-c", "/app/run.sh -Dserver.ssl.certificateFile=/certs/tls.crt -Dserver.ssl.certificateKeyFile=/certs/tls.key -Dserver.ssl.certificateChainFile=/certs/ca.crt -Djava.security.egd=file:/dev/./urandom -Djavax.net.ssl.trustStore=/etc/keystore/cacerts -Djavax.net.ssl.trustStoreType=pkcs12 -Djavax.net.ssl.trustStorePassword=changeit -Djava.library.path=/usr/lib/$(uname -p)-linux-gnu -jar /app/talos-ui.jar"]
+        {{- with .Values.talosui.lifecycleHooks }}
+        lifecycle:
+          {{- tpl . $ | nindent 12 }}
+        {{- end }}
+        env:
+          {{- if .Values.talosui.secretsManagerEnabled }}
+          - name: AWS_SECRETS_MANAGER_ENABLED
+            value: {{ .Values.talosui.secretsManagerEnabled | quote }}
+          - name: AWS_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: talosui
+                key: awsAccessKey
+          - name: AWS_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: talosui
+                key: awsSecretKey
+          {{ else }}
+          - name: CONFIG_SERVER_URL
+            value: {{ .Values.talosui.configservice.url | quote }}
+          - name: CONFIG_SERVER_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: talosui
+                key: token
+          {{- end }}
+          - name: SPRING_PROFILES_ACTIVE
+            value: {{ .Values.talosui.springProfileActive | quote }}
+        ports:
+          - name: https
+            containerPort: {{ .Values.talosui.service.targetPort }}
+            protocol: TCP
+        livenessProbe:
+          httpGet:
+            scheme: HTTPS
+            path: /actuator/info
+            port: {{ .Values.talosui.service.targetPort }}
+          initialDelaySeconds: 120
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            scheme: HTTPS
+            path: /actuator/health
+            port: {{ .Values.talosui.service.targetPort }}
+          initialDelaySeconds: 30
+          timeoutSeconds: 1
+        resources:
+          {{- toYaml .Values.talosui.resources | nindent 12 }}
+        volumeMounts:
+          - name: certs
+            mountPath: /certs
+            readOnly: true
+          - name: cacerts
+            mountPath: /cacerts
+            readOnly: true
+      volumes:
+        - name: certs
+          secret:
+            secretName: {{ include "talosui.fullname" . }}-pod-cert
+        - name: cacerts
+          secret:
+            secretName: ca
+      imagePullSecrets:
+        - name: regcred

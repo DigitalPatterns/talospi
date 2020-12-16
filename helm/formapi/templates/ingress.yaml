@@ -3,6 +3,8 @@ kind: Ingress
 metadata:
   annotations:
     kubernetes.io/ingress.class: {{ .Values.formapi.ingress.class }}
+    ingress.kubernetes.io/protocol: http
+    traefik.ingress.kubernetes.io/redirect-entry-point: https
   namespace: {{ .Values.formapi.namespace }}
   name: {{ include "formapi.fullname" . }}
 spec:

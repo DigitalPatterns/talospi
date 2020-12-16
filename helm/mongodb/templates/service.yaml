@@ -16,11 +16,10 @@ metadata:
       {{- end }}
   namespace: {{ .Values.mongodb.namespace }}
 spec:
-  type: ClusterIP
   sessionAffinity: None
   ports:
-    - port: {{ $service.port }}
+    - port: {{ $service.targetPort }}
       targetPort: {{ $service.targetPort }}
-      protocol: {{ $service.protocol }}
+  clusterIP: None
   selector:
     {{- include "mongodb.selectorLabels" . | nindent 4 }}

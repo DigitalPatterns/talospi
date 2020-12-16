@@ -3,6 +3,8 @@ kind: Ingress
 metadata:
   annotations:
     kubernetes.io/ingress.class: {{ .Values.postgrest.ingress.class }}
+    ingress.kubernetes.io/protocol: http
+    traefik.ingress.kubernetes.io/redirect-entry-point: https
   namespace: {{ .Values.postgrest.namespace }}
   name: {{ include "postgrest.fullname" . }}
 spec:

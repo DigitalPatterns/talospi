@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "presto.fullname" . }}-catalog
+  labels:
+    {{- include "presto.commonLabels" . | nindent 4 }}
+    service: {{ include "presto.fullname" . }}
+data:
+  mongodb.properties: |
+    connector.name=mongodb
+    mongodb.seeds=mongodb-0.mongodb.databases.svc.cluster.local,mongodb-1.mongodb.databases.svc.cluster.local,mongodb-2.mongodb.databases.svc.cluster.local
+    mongodb.credentials=camundaAdmin:TALOS@admin
+    mongodb.ssl.enabled=true
+    mongodb.required-replica-set=rs0
+  atlas.properties: |
+    connector.name=mongodb
+    mongodb.seeds=dev-shard-00-00.he4yv.mongodb.net:27017,dev-shard-00-01.he4yv.mongodb.net:27017,dev-shard-00-02.he4yv.mongodb.net:27017
+    mongodb.credentials=presto:aNfpKwzHRtqWVLX9WyYnTybr8mN3VU@admin
+    mongodb.ssl.enabled=true
+    mongodb.required-replica-set=atlas-12j6h4-shard-0
+  jmx.properties: |
+    connector.name=jmx
+  memory.properties: |
+    connector.name=memory
+  tpcds.properties: |
+    connector.name=tpcds
+    tpcds.splits-per-node=4
+  tpch.properties: |
+    connector.name=tpch
+    tpch.splits-per-node=4

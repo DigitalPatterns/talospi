@@ -106,7 +106,7 @@ global:
     # set as Subject Alternative Names (SANs) in the server certificate.
     # This is useful when you need to access the Consul server(s) externally,
     # for example, if you're using the UI.
-    serverAdditionalDNSSANs: []
+    serverAdditionalDNSSANs: ["consul-server.consul.svc.cluster.local"]
 
     # serverAdditionalIPSANs is a list of additional IP addresses to
     # set as Subject Alternative Names (SANs) in the server certificate.
@@ -274,8 +274,8 @@ server:
       memory: "100Mi"
       cpu: "100m"
     limits:
-      memory: "100Mi"
-      cpu: "100m"
+      memory: "256Mi"
+      cpu: "300m"
 
   # updatePartition is used to control a careful rolling update of Consul
   # servers. This should be done particularly when changing the version
@@ -451,8 +451,8 @@ client:
       memory: "100Mi"
       cpu: "100m"
     limits:
-      memory: "100Mi"
-      cpu: "100m"
+      memory: "256Mi"
+      cpu: "400m"
 
   # extraConfig is a raw string of extra configuration to set with the
   # client. This should be JSON.

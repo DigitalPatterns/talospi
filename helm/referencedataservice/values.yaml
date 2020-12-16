@@ -8,6 +8,7 @@ referencedataservice:
     pullPolicy: Always
   fullname: talos
   domainname: pi.talos.rocks
+  namespace: default
   configservice:
     url: https://configservice.vault.svc.cluster.local
   secretsManagerEnabled: false
@@ -27,10 +28,10 @@ referencedataservice:
   resources:
     requests:
       memory: "256Mi"
-      cpu: "200m"
+      cpu: "400m"
     limits:
       memory: "512Mi"
-      cpu: "500m"
+      cpu: "800m"
 
   deploymenttAnnotations: {}
 
