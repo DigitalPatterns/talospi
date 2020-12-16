@@ -1,51 +1,17 @@
-### Workflow Supporting Services
+### Workflow Notification Services
 
-Workflow supporting services is an enterprise feature of the Talos platform.
+Workflow Notification services is an enterprise feature of the Talos platform.
 
 It requires the following services:
-* Consul
-* Postgres
-* Talos Engine
-* MongoDB
+* RabbitMQ
+* AWS SMS/SNS setup
 
-
-` kubectl -n databases exec -it postgresql-0 psql`
-
-
-```sql
-create database supportingservices;
-create user supporting_services_admin with encrypted password 'CHANGE_ME';
-grant all privileges on database supportingservices to supporting_services_admin;
-```
-
-
-Keycloak - Client Scope:
-* supporting-services
-    -> audience mapper: supporting-services
  
 
-Consul Policy - supportingservices
-```hcl
-node_prefix "" {
-  policy = "write"
-}
-service_prefix "" {
-  policy = "read"
-}
-key_prefix "camel" {
-  policy = "write"
-}
-agent_prefix "" {
-  policy = "read"
-}
-session_prefix "" {
-  policy = "write"
-}
-```
 
 #### Vault setup
 
-Create a policy in Vault for the supportingservices and apply the token given as a kubernetes secret. 
+Create a policy in Vault for the notification gateway and apply the token given as a kubernetes secret. 
 Replace *<VAULT_TOKEN>* with the root vault token. `export ENV=dev` Where the environment is 'Development (dev)' or 
 'Production (prod)'. For other environments you will need to update the policy hcl file to match.
 
@@ -53,9 +19,9 @@ Replace *<VAULT_TOKEN>* with the root vault token. `export ENV=dev` Where the en
 kubectl -n vault port-forward service/vault 8200:8200
 export VAULT_ADDR="https://127.0.0.1:8200"
 export VAULT_TOKEN="<VAULT_TOKEN>"
-vault policy write -tls-skip-verify supporting-services cluster/policies/supporting-services-${ENV}.hcl
-vault token create -tls-skip-verify -period=8760h -policy=supporting-services -explicit-max-ttl=8760h
-kubectl create secret generic supportingservices --from-literal=token=$TOKEN
+vault policy write -tls-skip-verify notification-services cluster/policies/notification-${ENV}.hcl
+vault token create -tls-skip-verify -period=8760h -policy=notification-services -explicit-max-ttl=8760h
+kubectl create secret generic notification --from-literal=token=$TOKEN
 ```
 
 
@@ -79,22 +45,31 @@ In addition, you need to create a new secret in the secrets key value store unde
 
 ```json
 {
-  "api.allowedAudiences": "support-services",
-  "consul.acl-token": "<CHANGEME>",
-  "database.password": "<CHANGEME>",
-  "database.url": "jdbc:postgresql://postgresql.databases.svc.cluster.local:5432/supportingservices?sslmode=prefer&currentSchema=public",
-  "database.username": "supporting_services_admin"
+  "amazon.notify.enabled": true,
+  "api.allowedAudiences": "camunda-rest-api",
+  "auth.clientId": "notification",
+  "auth.clientSecret": "<CHANGEME>",
+  "aws.ses.access.key": "<CHANGEME>",
+  "aws.ses.from.address": "support@pi.talos.rocks",
+  "aws.ses.secret.key": "<CHANGEME>",
+  "aws.sns.access.key": "<CHANGEME>",
+  "aws.sns.secret.key": "<CHANGEME>",
+  "blob.storage.access.key": "<CHANGEME>",
+  "blob.storage.bucket.pdfs": "dp-dev-pdfs",
+  "blob.storage.endpoint": "https://s3.eu-west-2.amazonaws.com",
+  "blob.storage.region": "eu-west-2",
+  "blob.storage.secret.key": "<CHANGEME>",
+  "rabbitmq.password": "<CHANGEME>",
+  "rabbitmq.servers": "rabbitmq-rabbitmq-server-0.rabbitmq-rabbitmq-headless.rabbitmq.svc.cluster.local:5672,rabbitmq-rabbitmq-server-1.rabbitmq-rabbitmq-headless.rabbitmq.svc.cluster.local:5672,rabbitmq-rabbitmq-server-2.rabbitmq-rabbitmq-headless.rabbitmq.svc.cluster.local:5672",
+  "rabbitmq.username": "notification"
 }
 ```
 
 
-![](../images/refdataui/reference-secret.png)
+##### Deploy to cluster
 
-
-Install the Reference data service UI to the cluster
-
-##### Enterprise version
+Install the notification gateway to the cluster
 
 ```bash
-helm install supportingservices helm/supportingservices
+helm install notificationservices helm/notificationservices
 ```

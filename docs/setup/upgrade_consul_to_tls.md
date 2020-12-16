@@ -44,6 +44,11 @@ Add the CA certs to the generated cert, this allows it to form a proper CA Chain
 #### Step 3 - Update Consul to use TLS
 
 
+Ensure that *tls.yaml* and *tls_1.yaml* have the correct subject alternative name for you cluster.
+e.g:
+
+`serverAdditionalDNSSANs: ["consul-server.consul.svc.cluster.local"]`
+ 
 Then upload the generated key and cert as Kube secrets, after which a Helm will perform a rolling restart.
 ```bash
 kubectl -n consul create secret generic consul-ca-key --from-file='tls.key=./pki_consul_intermediate.key.pem'

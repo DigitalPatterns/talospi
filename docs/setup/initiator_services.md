@@ -1,6 +1,6 @@
-### Workflow Supporting Services
+### Workflow Initiator Services
 
-Workflow supporting services is an enterprise feature of the Talos platform.
+Workflow initiator services is an enterprise feature of the Talos platform.
 
 It requires the following services:
 * Consul
@@ -9,22 +9,12 @@ It requires the following services:
 * MongoDB
 
 
-` kubectl -n databases exec -it postgresql-0 psql`
-
-
-```sql
-create database supportingservices;
-create user supporting_services_admin with encrypted password 'CHANGE_ME';
-grant all privileges on database supportingservices to supporting_services_admin;
-```
-
-
 Keycloak - Client Scope:
 * supporting-services
     -> audience mapper: supporting-services
  
 
-Consul Policy - supportingservices
+Consul Policy - initiatorservices
 ```hcl
 node_prefix "" {
   policy = "write"
@@ -43,9 +33,24 @@ session_prefix "" {
 }
 ```
 
+#### Postgres DB setup
+
+Initiator services requires a postgres database. This can be added to postgres using the following:
+
+` kubectl -n databases exec -it postgresql-0 psql`
+
+Once in the postgres shell then run the following sql:
+
+```sql
+create database initiatorservices;
+create user supporting_services_admin with encrypted password 'CHANGE_ME';
+grant all privileges on database initiatorservices to supporting_services_admin;
+```
+
+
 #### Vault setup
 
-Create a policy in Vault for the supportingservices and apply the token given as a kubernetes secret. 
+Create a policy in Vault for the initiatorservices and apply the token given as a kubernetes secret. 
 Replace *<VAULT_TOKEN>* with the root vault token. `export ENV=dev` Where the environment is 'Development (dev)' or 
 'Production (prod)'. For other environments you will need to update the policy hcl file to match.
 
@@ -53,9 +58,9 @@ Replace *<VAULT_TOKEN>* with the root vault token. `export ENV=dev` Where the en
 kubectl -n vault port-forward service/vault 8200:8200
 export VAULT_ADDR="https://127.0.0.1:8200"
 export VAULT_TOKEN="<VAULT_TOKEN>"
-vault policy write -tls-skip-verify supporting-services cluster/policies/supporting-services-${ENV}.hcl
-vault token create -tls-skip-verify -period=8760h -policy=supporting-services -explicit-max-ttl=8760h
-kubectl create secret generic supportingservices --from-literal=token=$TOKEN
+vault policy write -tls-skip-verify initiator-services cluster/policies/initiator-services-${ENV}.hcl
+vault token create -tls-skip-verify -period=8760h -policy=initiator-services -explicit-max-ttl=8760h
+kubectl create secret generic initiatorservices --from-literal=token=$TOKEN
 ```
 
 
@@ -80,21 +85,36 @@ In addition, you need to create a new secret in the secrets key value store unde
 ```json
 {
   "api.allowedAudiences": "support-services",
+  "auth.clientId": "initiator",
+  "auth.clientSecret": "<CHANGEME>",
+  "auth.password": "<CHANGEME>",
+  "auth.username": "initiatoruser@pi.talos.rocks",
   "consul.acl-token": "<CHANGEME>",
-  "database.password": "<CHANGEME>",
-  "database.url": "jdbc:postgresql://postgresql.databases.svc.cluster.local:5432/supportingservices?sslmode=prefer&currentSchema=public",
-  "database.username": "supporting_services_admin"
+  "db.alert.businessKeyField": "beaconnum",
+  "db.alert.dbOnProcess": "update alertlog set is_processed=true,processed_utcdatetime=current_timestamp where alertid=:#alertid",
+  "db.alert.dbSelect": "select * from alertlog where is_processed = false order by alertutcdatetime limit 5",
+  "db.alert.driverClassName": "org.postgresql.Driver",
+  "db.alert.password": "<CHANGEME>",
+  "db.alert.pollingPeriod": "10s",
+  "db.alert.primaryKeyField": "alertid",
+  "db.alert.processKey": "alert",
+  "db.alert.url": "jdbc:postgresql://postgresql.databases.svc.cluster.local:5432/alerts?sslmode=prefer&currentSchema=public",
+  "db.alert.username": "<CHANGEME>",
+  "db.alert.variableName": "alert",
+  "mail.trackisafe.host": "imap.<CHANGEME>.com",
+  "mail.trackisafe.password": "<CHANGEME>",
+  "mail.trackisafe.processKey": "trackisafe",
+  "mail.trackisafe.username": "<CHANGEME>",
+  "talos.initiators.db.polling.key": "",
+  "talos.initiators.mail.polling.key": ""
 }
 ```
 
 
-![](../images/refdataui/reference-secret.png)
+##### Deploy
 
-
-Install the Reference data service UI to the cluster
-
-##### Enterprise version
+Deploy Initiator services to the cluster
 
 ```bash
-helm install supportingservices helm/supportingservices
+helm install initiatorservices helm/initiatorservices
 ```
