@@ -18,21 +18,21 @@ spec:
   usages:
     - server auth
     - client auth
-  commonName: "*.mongo.{{ .Values.rabbitmq.namespace }}.svc.cluster.local"
+  commonName: "*.rabbitmq-headless.{{ .Values.rabbitmq.namespace }}.svc.cluster.local"
   dnsNames:
     - rabbitmq-0
     - rabbitmq-1
     - rabbitmq-2
-    - rabbitmq-0.rabbitmq.{{ .Values.rabbitmq.namespace }}
-    - rabbitmq-1.rabbitmq.{{ .Values.rabbitmq.namespace }}
-    - rabbitmq-2.rabbitmq.{{ .Values.rabbitmq.namespace }}
-    - rabbitmq-0.rabbitmq.{{ .Values.rabbitmq.namespace }}.svc
-    - rabbitmq-1.rabbitmq.{{ .Values.rabbitmq.namespace }}.svc
-    - rabbitmq-2.rabbitmq.{{ .Values.rabbitmq.namespace }}.svc
-    - rabbitmq-0.rabbitmq.{{ .Values.rabbitmq.namespace }}.svc.cluster.local
-    - rabbitmq-1.rabbitmq.{{ .Values.rabbitmq.namespace }}.svc.cluster.local
-    - rabbitmq-2.rabbitmq.{{ .Values.rabbitmq.namespace }}.svc.cluster.local
-    - mongo-headless.{{ .Values.rabbitmq.namespace }}.svc.cluster.local
+    - rabbitmq-0.rabbitmq-headless.{{ .Values.rabbitmq.namespace }}
+    - rabbitmq-1.rabbitmq-headless.{{ .Values.rabbitmq.namespace }}
+    - rabbitmq-2.rabbitmq-headless.{{ .Values.rabbitmq.namespace }}
+    - rabbitmq-0.rabbitmq-headless.{{ .Values.rabbitmq.namespace }}.svc
+    - rabbitmq-1.rabbitmq-headless.{{ .Values.rabbitmq.namespace }}.svc
+    - rabbitmq-2.rabbitmq-headless.{{ .Values.rabbitmq.namespace }}.svc
+    - rabbitmq-0.rabbitmq-headless.{{ .Values.rabbitmq.namespace }}.svc.cluster.local
+    - rabbitmq-1.rabbitmq-headless.{{ .Values.rabbitmq.namespace }}.svc.cluster.local
+    - rabbitmq-2.rabbitmq-headless.{{ .Values.rabbitmq.namespace }}.svc.cluster.local
+    - rabbitmq-headless.{{ .Values.rabbitmq.namespace }}.svc.cluster.local
     - localhost
   ipAddresses:
     - 127.0.0.1

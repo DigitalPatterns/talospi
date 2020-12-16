@@ -118,6 +118,22 @@ Within keycloak you need a ClientID/Secret. Below are the settings for each:
 You also need to grab the Client Secret from the second tab.
 
 
+##### RabbitMQ setup
+
+To access the RabbitMQ console you need to port forward
+
+`kubectl -n rabbitmq port-forward svc/rabbitmq-client 15671:15671`
+
+Then connect to https://localhost:15671
+
+The admin password can be obtained using the following command:
+
+`kubectl -n rabbitmq get secrets rabbitmq-admin -o jsonpath='{.data.pass}' | base64 -d`
+
+Once in the console got to Admin and create a *notification* user then set the user up as per the following picture.
+
+![](../images/notification/rabbitmq2.png)
+
 ##### Vault Secret setup
 
 In Vault two sets of secrets are required. The application will read most of the settings from the shared config secret.
@@ -137,6 +153,8 @@ In addition, you need to create a new secret in the secrets key value store unde
   "aws.ses.access.key": "<CHANGEME>",
   "aws.ses.from.address": "support@pi.talos.rocks",
   "aws.ses.secret.key": "<CHANGEME>",
+  "aws.ses.region": "eu-west-2",
+  "aws.sns.region": "eu-west-1",
   "aws.sns.access.key": "<CHANGEME>",
   "aws.sns.secret.key": "<CHANGEME>",
   "blob.storage.access.key": "<CHANGEME>",
@@ -145,7 +163,7 @@ In addition, you need to create a new secret in the secrets key value store unde
   "blob.storage.region": "eu-west-2",
   "blob.storage.secret.key": "<CHANGEME>",
   "rabbitmq.password": "<CHANGEME>",
-  "rabbitmq.servers": "rabbitmq-rabbitmq-server-0.rabbitmq-rabbitmq-headless.rabbitmq.svc.cluster.local:5672,rabbitmq-rabbitmq-server-1.rabbitmq-rabbitmq-headless.rabbitmq.svc.cluster.local:5672,rabbitmq-rabbitmq-server-2.rabbitmq-rabbitmq-headless.rabbitmq.svc.cluster.local:5672",
+  "rabbitmq.servers": "rabbitmq-0.rabbitmq-headless.rabbitmq.svc.cluster.local:5671,rabbitmq-1.rabbitmq-headless.rabbitmq.svc.cluster.local:5671,rabbitmq-2.rabbitmq-headless.rabbitmq.svc.cluster.local:5671",
   "rabbitmq.username": "notification"
 }
 ```
