@@ -7,6 +7,79 @@ It requires the following services:
 * AWS SMS/SNS setup
 
  
+### AWS SES setup
+ 
+ 
+To be able to send emails via SES the following steps need to be followed within Amazon:
+ 
+ 
+##### Create and verify your domain
+
+In AWS eu-west-2 create and verify your domain name (this allows AWS to send email on your domains behalf)
+ 
+![](../images/notification/ses.png)
+
+
+Currently eu-west-2 does not allow for SMS messages. As such you must create an SNS topic under eu-west-1.
+
+![](../images/notification/sns1.png)
+![](../images/notification/sns2.png)
+![](../images/notification/sns3.png)
+![](../images/notification/sns4.png) 
+ 
+##### Create IAM Policy
+ 
+Under IAM policies create the following policy: *notification*
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ses:SendEmail",
+                "ses:SendRawEmail"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "sns:DeleteTopic",
+                "ses:SendRawEmail",
+                "sns:CreatePlatformApplication",
+                "sns:SetSMSAttributes",
+                "sns:CreateTopic",
+                "sns:CreatePlatformEndpoint",
+                "sns:Unsubscribe",
+                "sns:SetTopicAttributes",
+                "sns:OptInPhoneNumber",
+                "sns:DeleteEndpoint",
+                "ses:SendEmail",
+                "sns:SetEndpointAttributes",
+                "sns:SetSubscriptionAttributes",
+                "sns:Publish",
+                "sns:DeletePlatformApplication",
+                "sns:SetPlatformApplicationAttributes",
+                "sns:Subscribe",
+                "sns:ConfirmSubscription"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+```
+
+![](../images/notification/policy.png)
+ 
+ 
+##### Create an IAM user
+ 
+![](../images/notification/user.png)
+
+![](../images/notification/user2.png)
+
 
 
 #### Vault setup
@@ -33,6 +106,18 @@ kubectl create secret docker-registry regcred --docker-server=https://index.dock
  --docker-username=<your-name> --docker-password=<your-pword> --docker-email=<your-email>
 ```
 
+
+##### Keycloak Setup
+
+Within keycloak you need a ClientID/Secret. Below are the settings for each:
+
+###### ClientID
+
+![](../images/notification/clientid.png)
+
+You also need to grab the Client Secret from the second tab.
+
+
 ##### Vault Secret setup
 
 In Vault two sets of secrets are required. The application will read most of the settings from the shared config secret.
@@ -55,7 +140,7 @@ In addition, you need to create a new secret in the secrets key value store unde
   "aws.sns.access.key": "<CHANGEME>",
   "aws.sns.secret.key": "<CHANGEME>",
   "blob.storage.access.key": "<CHANGEME>",
-  "blob.storage.bucket.pdfs": "dp-dev-pdfs",
+  "blob.storage.bucket.pdfs": "<CHANGEME>-pdfs",
   "blob.storage.endpoint": "https://s3.eu-west-2.amazonaws.com",
   "blob.storage.region": "eu-west-2",
   "blob.storage.secret.key": "<CHANGEME>",
