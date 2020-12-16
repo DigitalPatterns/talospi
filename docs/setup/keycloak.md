@@ -48,3 +48,10 @@ In order to setup the admin user, the first time you connect to Keycloak you mus
 
 Then connect on a browser via [http://localhost:8080](http://localhost:8080) and follow the on screen prompts.
 
+
+#### Step 5 - Import rocks realm
+
+To speed up deployment you can import the sample realm from 
+[https://raw.githubusercontent.com/DigitalPatterns/talospi/main/cluster/keycloak/realm-export.json](https://raw.githubusercontent.com/DigitalPatterns/talospi/main/cluster/keycloak/realm-export.json)
+
+
