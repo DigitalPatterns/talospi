@@ -5,6 +5,13 @@ version uses AWS Secrets manager. To use the open source version replace the Vau
 setup steps for secrets manager, ensuring there is a set of AWS access credentials that has access to the required 
 secret.
 
+#### Keycloak setup
+
+The Reference data UI requires a public Keycloak client to be created called *talosui*
+![](../images/talosui/keycloak_client1.png)
+
+Ensure the both the *refdata-readonly*, *camunda-rest-api* and *user* client scopes are added to the client.
+![](../images/talosui/keycloak_client2.png)
 
 #### Vault setup
 

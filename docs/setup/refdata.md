@@ -116,6 +116,14 @@ frontend. This is because before changes to data are allowed they need to be app
 the use of BPMN's.
 
 
+#### Keycloak setup
+
+The Reference data UI requires a public Keycloak client to be created called *referencedataservice*
+![](../images/refdataui/keycloak_client1.png)
+
+Ensure the both the *refdata-readonly* and *camunda-rest-api* client scopes are added to the client.
+![](../images/refdataui/keycloak_client2.png)
+
 #### Vault setup
 
 Create a policy in Vault for the referencedataservice and apply the token given as a kubernetes secret. 

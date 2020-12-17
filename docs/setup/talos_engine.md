@@ -6,11 +6,27 @@ setup steps for secrets manager, ensuring there is a set of AWS access credentia
 secret.
 
 
+#### Postgres DB setup
+
+Initiator services requires a postgres database. This can be added to postgres using the following:
+
+` kubectl -n databases exec -it postgresql-0 psql`
+
+Once in the postgres shell then run the following sql:
+
 ```sql
 create database talos_engine;
 create user talos_engine_admin with encrypted password 'CHANGE_ME';
 grant all privileges on database talos_engine to talos_engine_admin;
 ```
+
+#### Mongo DB setup
+
+Initiator services requires a postgres database. This can be added to postgres using the following:
+
+`kubectl -n databases exec -it mongodb-0 mongo`
+
+Once in the mongo shell then run the following mongo commands:
 
 ```mongojs
 use admin
@@ -26,9 +42,18 @@ use talos
 `CTRL-D`
 ```
 
-Keycloak group:
-camunda-admin
- + client-scope camunda-rest-api
+
+#### Keycloak setup
+
+The Reference data UI requires a confidential Keycloak client to be created called *talosengine*
+![](../images/talosui/keycloak_client1.png)
+
+Ensure the both the *refdata-serviceuser*, *camunda-rest-api* client scopes are added to the client.
+![](../images/talosui/keycloak_client2.png)
+
+Under service account roles -> Realm management ensure the *view-users* role is assigned.
+![](../images/talosui/keycloak_client3.png)
+
 
 #### Vault setup
 
