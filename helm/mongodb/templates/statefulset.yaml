@@ -106,7 +106,7 @@ spec:
         args:
           - --replSet=rs0
           - --auth
-          - --tlsMode=requireTLS
+          - --tlsMode=preferTLS
           - --tlsCertificateKeyFile=/certificates/mongo.pem
           - --tlsCAFile=/certificates/ca.crt
           - --tlsClusterFile=/certificates/mongo.pem

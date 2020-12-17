@@ -37,3 +37,17 @@ kubectl -n rabbitmq create secret generic rabbitmq-admin --from-literal=user=adm
 #### Step 4 - Install RabbitMQ
 
 `helm -n rabbitmq install rabbitmq helm/rabbitmq`
+
+
+
+### Accessing the RabbitMQ UI
+
+To access the RabbitMQ API you need the following port-forward command:
+
+`kubectl -n rabbitmq port-forward svc/rabbitmq-client 15671:15671`
+
+Then visit the url: [https://localhost:15671](https://localhost:15671)
+
+To get the admin password use the following command:
+
+`kubectl -n rabbitmq get secrets rabbitmq-admin -o jsonpath='{.data.pass}' | base64 -d`

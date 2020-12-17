@@ -10,7 +10,7 @@ data:
     connector.name=mongodb
     mongodb.seeds=mongodb-0.mongodb.databases.svc.cluster.local,mongodb-1.mongodb.databases.svc.cluster.local,mongodb-2.mongodb.databases.svc.cluster.local
     mongodb.credentials=camundaAdmin:TALOS@admin
-    mongodb.ssl.enabled=true
+    mongodb.ssl.enabled=false
     mongodb.required-replica-set=rs0
   atlas.properties: |
     connector.name=mongodb

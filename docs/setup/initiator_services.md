@@ -9,12 +9,49 @@ It requires the following services:
 * MongoDB
 
 
-Keycloak - Client Scope:
-* supporting-services
-    -> audience mapper: supporting-services
+##### Keycloak Setup
+
+Within keycloak you need a ClientID/Secret. Below are the settings required:
+
+###### ClientID
+
+You need to create a *initiator* confidential client
+![](../images/initiatorservices/keycloak_client1.png)
+
+Ensure the camunda-rest-api mapper is assigned as a scope.
+
+![](../images/initiatorservices/keycloak_client2.png)
+
+You also need to grab the Client Secret from the second tab.
+
+
+###### Group
+
+You need to create a group called *initiators*
+![](../images/initiatorservices/keycloak_group.png)
+
+###### User
+
+You need to create a user for the supporting services, this should be as follows:
+![](../images/initiatorservices/keycloak_user1.png)
+
+Ensure the user is part of the *initiators* group
+![](../images/initiatorservices/keycloak_user2.png)
  
 
-Consul Policy - initiatorservices
+#### Consul setup
+
+Access the consul ui by port-forwarding with the following command:
+
+`kubectl -n consul port-forward svc/consul-ui 8443:443`
+
+Get the access token for the UI with the following command:
+
+`kubectl -n consul get secrets consul-bootstrap-acl-token -o jsonpath='{.data.token}' | base64 -d`
+
+Go to the following web link: [https://localhost:8443/ui/talospi/acls/tokens](https://localhost:8443/ui/talospi/acls/tokens)
+
+Under policies create the following Consul Policy called *initiatorservices*
 ```hcl
 node_prefix "" {
   policy = "write"
@@ -32,6 +69,13 @@ session_prefix "" {
   policy = "write"
 }
 ```
+
+Create a token for the initiator services
+
+![](../images/initiatorservices/consul.png)
+
+Grab the token as this will be needed in the later steps to be added into Vault.
+
 
 #### Postgres DB setup
 

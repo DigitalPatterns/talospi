@@ -109,7 +109,7 @@ kubectl create secret docker-registry regcred --docker-server=https://index.dock
 
 ##### Keycloak Setup
 
-Within keycloak you need a ClientID/Secret. Below are the settings for each:
+Within keycloak you need a ClientID/Secret. Below are the settings required:
 
 ###### ClientID
 
@@ -133,6 +133,7 @@ The admin password can be obtained using the following command:
 Once in the console got to Admin and create a *notification* user then set the user up as per the following picture.
 
 ![](../images/notification/rabbitmq2.png)
+
 
 ##### Vault Secret setup
 

@@ -77,14 +77,18 @@ spec:
             path: /actuator/health
             port: {{ .Values.notification.service.targetPort }}
           initialDelaySeconds: 360
-          timeoutSeconds: 5
+          timeoutSeconds: 10
+          successThreshold: 1
+          failureThreshold: 5
         readinessProbe:
           httpGet:
             scheme: HTTPS
             path: /actuator/info
             port: {{ .Values.notification.service.targetPort }}
           initialDelaySeconds: 240
-          timeoutSeconds: 1
+          timeoutSeconds: 10
+          successThreshold: 1
+          failureThreshold: 5
         resources:
           {{- toYaml .Values.notification.resources | nindent 12 }}
         volumeMounts:
