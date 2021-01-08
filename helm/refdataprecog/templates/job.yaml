@@ -1,0 +1,72 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "refdataprecog.fullname" . }}
+  labels:
+    {{- include "refdataprecog.commonLabels" . | nindent 4 }}
+#  annotations:
+#    "helm.sh/hook": pre-install,pre-upgrade,pre-rollback
+#    "helm.sh/hook-delete-policy": before-hook-creation
+#    "helm.sh/hook-weight": "3"
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.refdataprecog.image.repository }}:{{ .Values.refdataprecog.image.tag }}"
+          imagePullPolicy: {{ .Values.refdataprecog.image.pullPolicy }}
+          command: ["/bin/bash", "-c", {{ .Files.Get "scripts/runjob.sh" | quote }} ]
+          env:
+            - name: DB_HOSTNAME
+              value: {{ .Values.refdataprecog.db.hostname }}
+            - name: DB_PORT
+              value: "{{ .Values.refdataprecog.db.port }}"
+            - name: DB_NAME
+              value: {{ .Values.refdataprecog.db.name }}
+            - name: DB_DEFAULT_NAME
+              value: {{ .Values.refdataprecog.db.default.name }}
+            - name: DB_OPTIONS
+              value: {{ .Values.refdataprecog.db.options }}
+            - name: DB_JDBC_OPTIONS
+              value: {{ .Values.refdataprecog.db.jdbcOptions }}
+            - name: FLYWAY_USER
+              value: {{ .Values.refdataprecog.db.default.user }}
+            - name: FLYWAY_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "refdataprecog.fullname" . }}
+                  key: defaultPassword
+            - name: DB_OWNERNAME
+              value: {{ .Values.refdataprecog.db.owner.user }}
+            - name: DB_OWNERPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "refdataprecog.fullname" . }}
+                  key: ownerPassword
+            - name: DB_SCHEMA
+              value: {{ .Values.refdataprecog.db.schema }}
+            - name: FLYWAY_PLACEHOLDERS_AUTHENTICATORUSER
+              value: {{ .Values.refdataprecog.db.authenticator.user }}
+            - name: FLYWAY_PLACEHOLDERS_AUTHENTICATORPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "refdataprecog.fullname" . }}
+                  key: authenticatorPassword
+            - name: FLYWAY_PLACEHOLDERS_ANONUSER
+              value: {{ .Values.refdataprecog.db.anon.user }}
+            - name: FLYWAY_PLACEHOLDERS_SERVICEUSER
+              value: {{ .Values.refdataprecog.db.service.user }}
+            - name: FLYWAY_PLACEHOLDERS_READONLYUSER
+              value: {{ .Values.refdataprecog.db.readonly.user }}
+            - name: FLYWAY_PLACEHOLDERS_REPORTUSER
+              value: {{ .Values.refdataprecog.db.report.user }}
+            - name: FLYWAY_PLACEHOLDERS_IOTUSER
+              value: {{ .Values.refdataprecog.db.iot.user }}
+            - name: FLYWAY_PLACEHOLDERS_IOTPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "refdataprecog.fullname" . }}
+                  key: iotPassword
+      imagePullSecrets:
+        - name: regcred

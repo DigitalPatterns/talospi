@@ -173,7 +173,7 @@ Create vault cert issued by cert-manager
 kubectl -n vault create -f cluster/vault/cert.yaml
 ```
 
-Check the certificate wss issued
+Check the certificate was issued
 
 ```bash
 kubectl -n vault get certificates | grep vault
@@ -264,7 +264,7 @@ vault write pki_ext/intermediate/set-signed certificate=@ca-bundle-ext.pem
 
 #### Step 4 - Create roles to allow certificate requests 
 
-Create a role to allow one for Consul and one for Cert-Manager to be able to request certificates
+Create a role to allow for Cert-Manager to be able to request certificates
 
 ```bash
 vault write pki_ext/roles/pi-talos-rocks \

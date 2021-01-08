@@ -38,6 +38,6 @@ postgrest:
 
   ingress:
     name: postgrest.pi.talos.rocks
-    class: traefik
+    class: nginx
 
 

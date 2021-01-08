@@ -1,2 +1,6 @@
 .idea/
 tmp/
+ptmp/
+.DS_Store
+*/.DS_Store
+RootCA.crt.orig

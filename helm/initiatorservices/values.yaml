@@ -50,4 +50,4 @@ initiatorservices:
 
   ingress:
     name: initiatorservices.pi.talos.rocks
-    class: traefik
+    class: nginx

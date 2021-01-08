@@ -55,7 +55,7 @@ presto:
 
   ingress:
     name: presto.pi.talos.rocks
-    class: traefik
+    class: nginx
 
   resources:
     # We usually recommend not to specify default resources and to leave this as a conscious

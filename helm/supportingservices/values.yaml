@@ -32,10 +32,10 @@ supportingservices:
   resources:
     requests:
       memory: "256Mi"
-      cpu: "250m"
+      cpu: "400m"
     limits:
       memory: "512Mi"
-      cpu: "500m"
+      cpu: "800m"
 
   ## Extra annotations to be added to statefulset
   deploymenttAnnotations: {}

@@ -37,7 +37,7 @@ talosui:
       cpu: "400m"
     limits:
       memory: "512Mi"
-      cpu: "8000m"
+      cpu: "800m"
 
 
   ## Extra annotations to be added to statefulset
@@ -58,4 +58,4 @@ talosui:
 
   ingress:
     name: www.pi.talos.rocks
-    class: traefik
+    class: nginx

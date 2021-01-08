@@ -21,7 +21,7 @@ Run the following to setup the postgrest API. (This will download and setup the 
 also set the authenticator db access password.)
 
 ```bash
-helm -n databases install postgrest helm/postgrest --set postgrest.db.jwtSecret="$(curl -s https://keycloak.pi.talos.rocks/auth/realms/rocks/protocol/openid-connect/certs | jq -rc '.keys | first | {kid, kty, alg, n, e}' | base64)" --set postgrest.db.uri="postgres://authuser:authPWD@postgresql.databases.svc.cluster.local:5432/reference?ssl=prefer"
+helm -n databases install postgrest helm/postgrest --set postgrest.db.jwtSecret="$(curl -s https://keycloak.pi.talos.rocks/auth/realms/rocks/protocol/openid-connect/certs | jq -rc '.keys | first | {kid, kty, alg, n, e}' | base64)" --set postgrest.db.uri="postgres://authuser:authPWD@postgresql.databases.svc.cluster.local:5432/reference"
 ```
 
 

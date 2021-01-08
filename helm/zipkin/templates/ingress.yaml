@@ -2,27 +2,27 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
-    kubernetes.io/ingress.class: {{ .Values.presto.ingress.class }}
-    ingress.kubernetes.io/protocol: http
+    kubernetes.io/ingress.class: {{ .Values.zipkin.ingress.class }}
+    ingress.kubernetes.io/protocol: https
     nginx.ingress.kubernetes.io/backend-protocol: http
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
-  namespace: {{ .Values.presto.namespace }}
-  name: {{ include "presto.fullname" . }}
+  namespace: {{ .Values.zipkin.namespace }}
+  name: {{ include "zipkin.fullname" . }}
 spec:
   rules:
-    - host: {{ .Values.presto.ingress.name }}
+    - host: {{ .Values.zipkin.ingress.name }}
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: {{ include "presto.fullname" . }}-coordinator
+                name: {{ include "zipkin.fullname" . }}
                 port:
-                  number: {{ .Values.presto.service.port }}
+                  number: {{ .Values.zipkin.service.port }}
   # This section is only required if TLS is to be enabled for the Ingress
   tls:
     - hosts:
-        - {{ .Values.presto.ingress.name }}
-      secretName: {{ include "presto.fullname" . }}-ext-cert
+        - {{ .Values.zipkin.ingress.name }}
+      secretName: {{ include "zipkin.fullname" . }}-ext-cert

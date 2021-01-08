@@ -55,4 +55,4 @@ keycloak:
 
   ingress:
     name: keycloak.pi.talos.rocks
-    class: traefik
+    class: nginx

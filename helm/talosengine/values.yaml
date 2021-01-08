@@ -46,4 +46,4 @@ talosengine:
 
   ingress:
     name: engine.pi.talos.rocks
-    class: traefik
+    class: nginx

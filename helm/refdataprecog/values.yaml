@@ -1,0 +1,38 @@
+refdataprecog:
+  namespace: databases
+  image:
+    repository: digitalpatterns/flyway-precog
+    tag: "latest"
+    pullPolicy: Always
+
+  db:
+    hostname: postgresql.databases.svc.cluster.local
+    schema: reference
+    port: 5432
+    name: reference
+    default:
+      name: postgres
+      user: postgres
+    jdbcOptions:
+    options:
+    owner:
+      user: refowner
+    authenticator:
+      user: authuser
+    anon:
+      user: anonuser
+    service:
+      user: serviceuser
+    readonly:
+      user: readonlyuser
+    iot:
+      user: iotuser
+    report:
+      user: reportuser
+
+  securityContext:
+    fsGroup: 1000
+
+  containerSecurityContext:
+    runAsUser: 1000
+    runAsNonRoot: true

@@ -91,15 +91,15 @@ spec:
             scheme: HTTPS
             path: /actuator/info
             port: {{ .Values.talosui.service.targetPort }}
-          initialDelaySeconds: 120
+          initialDelaySeconds: 240
           timeoutSeconds: 5
         readinessProbe:
           httpGet:
             scheme: HTTPS
             path: /actuator/health
             port: {{ .Values.talosui.service.targetPort }}
-          initialDelaySeconds: 30
-          timeoutSeconds: 1
+          initialDelaySeconds: 240
+          timeoutSeconds: 5
         resources:
           {{- toYaml .Values.talosui.resources | nindent 12 }}
         volumeMounts:

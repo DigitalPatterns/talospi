@@ -12,12 +12,14 @@ data:
     mongodb.credentials=camundaAdmin:TALOS@admin
     mongodb.ssl.enabled=false
     mongodb.required-replica-set=rs0
+    mongodb.schema-collection=presto_schema
   atlas.properties: |
     connector.name=mongodb
     mongodb.seeds=dev-shard-00-00.he4yv.mongodb.net:27017,dev-shard-00-01.he4yv.mongodb.net:27017,dev-shard-00-02.he4yv.mongodb.net:27017
     mongodb.credentials=presto:aNfpKwzHRtqWVLX9WyYnTybr8mN3VU@admin
     mongodb.ssl.enabled=true
     mongodb.required-replica-set=atlas-12j6h4-shard-0
+    mongodb.schema-collection=presto_schema
   jmx.properties: |
     connector.name=jmx
   memory.properties: |

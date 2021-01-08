@@ -4,7 +4,9 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: {{ .Values.keycloak.ingress.class }}
     ingress.kubernetes.io/protocol: http
-    traefik.ingress.kubernetes.io/redirect-entry-point: https
+    nginx.ingress.kubernetes.io/backend-protocol: http
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
   namespace: {{ .Values.keycloak.namespace }}
   name: {{ include "keycloak.fullname" . }}
 spec:

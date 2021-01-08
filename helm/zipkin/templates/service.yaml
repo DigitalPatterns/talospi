@@ -1,0 +1,29 @@
+{{- $service := .Values.zipkin.service -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "zipkin.fullname" . }}
+  {{- with $service.annotations }}
+  annotations:
+    {{- range $key, $value := . }}
+      {{- printf "%s: %s" $key (tpl $value $ | quote) | nindent 4 }}
+      {{- end }}
+      {{- end }}
+  labels:
+    {{- include "zipkin.commonLabels" . | nindent 4 }}
+      {{- with $service.labels }}
+      {{- toYaml . | nindent 4 }}
+      {{- end }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: zipkin
+      port: 9411
+      targetPort: 9411
+      protocol: TCP
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+  selector:
+    {{- include "zipkin.selectorLabels" . | nindent 4 }}

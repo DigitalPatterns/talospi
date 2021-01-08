@@ -62,4 +62,4 @@ formbuilder:
 
   ingress:
     name: formbuilder.pi.talos.rocks
-    class: traefik
+    class: nginx

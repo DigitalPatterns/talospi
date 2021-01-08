@@ -1,18 +1,11 @@
-clusterDomain: cluster.local
-referencedataservice:
+zipkin:
   replicas: 1
 
   image:
-    repository: digitalpatterns/talos-reference-data-service
-    tag: latest
+    repository: openzipkin/zipkin-aws
+    # Overrides the image tag whose default is the chart version.
+    tag: ""
     pullPolicy: Always
-  fullname: talos
-  domainname: pi.talos.rocks
-  namespace: default
-  configservice:
-    url: https://configservice.vault.svc.cluster.local
-  secretsManagerEnabled: false
-  springProfileActive: dev
   restartPolicy: Always
 
   securityContext:
@@ -31,16 +24,18 @@ referencedataservice:
       cpu: "400m"
     limits:
       memory: "512Mi"
-      cpu: "800m"
+      cpu: "8000m"
 
+
+  ## Extra annotations to be added to statefulset
   deploymenttAnnotations: {}
 
   service:
     annotations: {}
     labels: {}
-    port: 443
+    port: 8080
     protocol: TCP
-    targetPort: 8443
+    targetPort: 8080
     issuerRef:
       name: vault-issuer
       kind: ClusterIssuer
@@ -49,5 +44,11 @@ referencedataservice:
       kind: ClusterIssuer
 
   ingress:
-    name: reference-data-service.pi.talos.rocks
+    name: zipkin.pi.talos.rocks
     class: nginx
+
+  proxy:
+    image:
+      repository: quay.io/oauth2-proxy/oauth2-proxy
+      tag: v5.1.1
+    config: xxx

@@ -1,0 +1,115 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "zipkin.fullname" . }}
+  {{- if .Values.zipkin.deploymenttAnnotations }}
+  annotations:
+    {{- with .Values.zipkin.deploymenttAnnotations }}
+      {{- range $key, $value := . }}
+      {{- printf "%s: %s" $key (tpl $value $ | quote) | nindent 4 }}
+      {{- end }}
+      {{- end }}
+  {{- end }}
+  labels:
+    {{- include "zipkin.commonLabels" . | nindent 4 }}
+    service: {{ include "zipkin.fullname" . }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "zipkin.selectorLabels" . | nindent 6 }}
+  replicas: {{ .Values.zipkin.replicas }}
+  revisionHistoryLimit: 3
+  minReadySeconds: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        name: {{ include "zipkin.fullname" . }}
+        service: {{ include "zipkin.fullname" . }}
+        {{- include "zipkin.selectorLabels" . | nindent 8 }}
+          {{- with .Values.zipkin.podLabels }}
+          {{- toYaml . | nindent 8 }}
+          {{- end }}
+      annotations:
+        {{- with .Values.zipkin.podAnnotations }}
+        {{- range $key, $value := . }}
+        {{- printf "%s: %s" $key (tpl $value $ | quote) | nindent 8 }}
+        {{- end }}
+        {{- end }}
+    spec:
+      restartPolicy: {{ .Values.zipkin.restartPolicy }}
+      securityContext:
+        {{- toYaml .Values.zipkin.securityContext | nindent 8 }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.zipkin.image.repository }}:{{ .Values.zipkin.image.tag }}"
+        imagePullPolicy: {{ .Values.zipkin.image.pullPolicy }}
+        securityContext:
+          {{- toYaml .Values.zipkin.containerSecurityContext | nindent 12 }}
+        {{- with .Values.zipkin.lifecycleHooks }}
+        lifecycle:
+          {{- tpl . $ | nindent 12 }}
+        {{- end }}
+        env:
+          - name: STORAGE_TYPE
+            value: "mem"
+        ports:
+          - name: http
+            containerPort: 9411
+            protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 9411
+          initialDelaySeconds: 300
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 9411
+          initialDelaySeconds: 30
+          timeoutSeconds: 1
+        resources:
+          {{- toYaml .Values.zipkin.resources | nindent 12 }}
+      - name: "proxy"
+        image: "{{ .Values.zipkin.proxy.image.repository }}:{{ .Values.zipkin.proxy.image.tag }}"
+        imagePullPolicy: {{ .Values.zipkin.image.pullPolicy }}
+        args: ["--config", "/config/oauth2-proxy.cfg", "--email-domain=*"]
+        securityContext:
+          {{- toYaml .Values.zipkin.containerSecurityContext | nindent 12 }}
+        {{- with .Values.zipkin.lifecycleHooks }}
+        lifecycle:
+          {{- tpl . $ | nindent 12 }}
+        {{- end }}
+        ports:
+          - name: http
+            containerPort: 8080
+            protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: 8080
+          initialDelaySeconds: 30
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: 8080
+          initialDelaySeconds: 30
+          timeoutSeconds: 1
+        resources:
+          {{- toYaml .Values.zipkin.proxy.resources | nindent 12 }}
+        volumeMounts:
+          - mountPath: /config
+            name: config-volume
+      volumes:
+        - name: config-volume
+          secret:
+            defaultMode: 420
+            secretName: {{ include "zipkin.fullname" . }}
+      imagePullSecrets:
+      - name: regcred

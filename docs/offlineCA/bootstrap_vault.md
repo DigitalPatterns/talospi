@@ -140,10 +140,18 @@ Create a role to allow issuing of certificates based on the Root CA (for the vau
 
 ```bash
 vault write pki_root/roles/local \
-        allowed_domains="local" \
+        allow_any_name=true \
+        allow_bare_domains=true \
         allow_subdomains=true \
+        allow_glob_domains=true \
+        allow_localhost=true \
+        allow_ip_sans=true \
+        allowed_other_sans="*" \
+        use_csr_common_name=true \
+        use_csr_sans=true \
+        require_cn=false \
         max_ttl="87600h"
-vault write pki_root/issue/local common_name="vault.local" ttl="87599h
+VAULT_SKIP_VERIFY=true VAULT_FORMAT=json vault  write pki_root/roles/local common_name="vault.local" ip_sans="127.0.0.1,192.168.1.2" alt_names="vault.local.talos.rocks" ttl="87600h" > vault_cert.json
 ```
 
 Copy both the certificate and ca into a file called tls.crt (ensuring the ca is second in the file)
@@ -180,7 +188,7 @@ systemctl start vault
 To copy the CA back to your machine you can use the following command:
 
 ```bash
-scp pi@vault.local:~/ca.crt .
+scp pi@vault.local:~/ca.crt RootCA.crt
 ```
 
 

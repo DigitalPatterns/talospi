@@ -28,14 +28,19 @@ jq -r '.data.csr' < pki_consul_intermediate.json > pki_consul_intermediate.csr
 
 #### Step 2 - Sign the Consul CSR
 
+Sign the certificate using the RootCA against the Vault stored on the Raspberry PI 
 ```bash
-vault write -tls-skip-verify -format=json pki_int/root/sign-intermediate \
+vault write -tls-skip-verify -format=json pki_root/root/sign-intermediate \
         csr=@pki_consul_intermediate.csr \
         format=pem_bundle \
         ttl="43800h" \
         | jq -r '.data.certificate' > pki_consul_intermediate.cert.pem
         
 cat RootCA.crt >> pki_consul_intermediate.cert.pem
+```
+
+Upload back to the local root
+```bash
 vault write -tls-skip-verify pki_int_consul/intermediate/set-signed certificate=@pki_consul_intermediate.cert.pem 
 ```
 Add the CA certs to the generated cert, this allows it to form a proper CA Chain in order to validate certificates.

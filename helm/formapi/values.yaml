@@ -108,4 +108,4 @@ formapi:
 
   ingress:
     name: formapi.pi.talos.rocks
-    class: traefik
+    class: nginx

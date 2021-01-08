@@ -38,44 +38,5 @@ The following pages describes the [parts used](parts_list.md) to build the K8s c
 ### Monitoring
 
 I use lens to monitor my cluster automatically from any machine. Follow the guide at [k8slens](https://k8slens.dev/)
-for how to install. They can also automatically install Prometheus for you into a lens-metrics namespace. 
-Currently, this has a small bug which requires you to edit the deployment file.
-Bug report - [https://github.com/lensapp/lens/issues/391](https://github.com/lensapp/lens/issues/391)
-
-
-Step to workaround bug:
-
-`kubectl -n lens-metrics edit deployments kube-state-metrics`
-
-Change the following lines to match
-
-```yaml
-    spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
-              - key: kubernetes.io/os
-                operator: In
-                values:
-                - linux
-              - key: kubernetes.io/arch
-                operator: In
-                values:
-                - arm64
-            - matchExpressions:
-              - key: beta.kubernetes.io/os
-                operator: In
-                values:
-                - linux
-              - key: beta.kubernetes.io/arch
-                operator: In
-                values:
-                - arm64
-      containers:
-      - image: k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.0.0-alpha.3
-```
-
-Once saved this will pull the correct image for the arm64 and deploy. After which you will be able to see metrics in Lens.
-
+for how to install. Then ensure you go to the settings and select the helm *Prometheus* mode which will allow you to see
+embedded metrics within the app.
