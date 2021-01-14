@@ -1,0 +1,50 @@
+{{- if eq .Values.cubejsbackend.ingress.class "nginx"}}
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: {{ .Values.cubejsbackend.ingress.class }}
+    ingress.kubernetes.io/protocol: http
+    nginx.ingress.kubernetes.io/backend-protocol: http
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: 400m
+    nginx.ingress.kubernetes.io/proxy-read-timeout: 120s
+    nginx.ingress.kubernetes.io/proxy-send-timeout: 120s
+  namespace: {{ .Values.cubejsbackend.namespace }}
+  name: {{ include "cubejsbackend.fullname" . }}
+spec:
+  rules:
+    - host: {{ .Values.cubejsbackend.ingress.name }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "cubejsbackend.fullname" . }}
+                port:
+                  number: {{ .Values.cubejsbackend.service.port }}
+  # This section is only required if TLS is to be enabled for the Ingress
+  tls:
+    - hosts:
+        - {{ .Values.cubejsbackend.ingress.name }}
+      secretName: {{ include "cubejsbackend.fullname" . }}-ext-cert
+  {{- else }}
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ include "cubejsbackend.fullname" . }}
+  namespace: {{ .Values.cubejsbackend.namespace }}
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`{{ .Values.cubejsbackend.ingress.name }}`)
+      services:
+        - name: {{ include "cubejsbackend.fullname" . }}
+          port: {{ .Values.cubejsbackend.service.port }}
+  tls:
+    secretName: {{ include "cubejsbackend.fullname" . }}-ext-cert
+  {{- end }}

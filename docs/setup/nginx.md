@@ -22,3 +22,12 @@ kubectl create ns nginx
 helm -n nginx repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm -n nginx install nginx ingress-nginx/ingress-nginx
 ```
+
+
+#### Traefik deployment
+
+```bash
+kubectl create ns extingress
+helm repo add traefik https://helm.traefik.io/traefik
+helm -n extingress install traefik traefik/traefik --set logs.access.enabled=true --set ports.websecure.tls.enabled=true
+```

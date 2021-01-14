@@ -10,7 +10,7 @@ secret.
 
 Initiator services requires a postgres database. This can be added to postgres using the following:
 
-` kubectl -n databases exec -it postgresql-0 psql`
+`kubectl -n databases exec -it postgresql-0 psql`
 
 Once in the postgres shell then run the following sql:
 

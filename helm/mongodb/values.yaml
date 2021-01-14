@@ -3,7 +3,6 @@ clusterDomain: cluster.local
 mongodb:
   replicas: 3
   namespace: databases
-  domainname: pi.talos.rocks
   image:
     repository: mongo
     # Overrides the image tag whose default is the chart version.

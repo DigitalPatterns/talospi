@@ -10,12 +10,24 @@ kubectl -n vault create secret docker-registry regcred --docker-server=https://i
  --docker-username=<your-name> --docker-password=<your-pword> --docker-email=<your-email>
 ```
 
-Install the config service to the cluster
+
+#### Vault setup
+
+Create a policy in Vault for the initiatorservices and apply the token given as a kubernetes secret.
+Replace *<VAULT_TOKEN>* with the root vault token. `export ENV=dev` Where the environment is 'Development (dev)' or
+'Production (prod)'. For other environments you will need to update the policy hcl file to match.
 
 ```bash
-helm -n vault install configservice helm/configservice
+kubectl -n vault port-forward service/vault 8200:8200
+export VAULT_ADDR="https://127.0.0.1:8200"
+export VAULT_TOKEN="<VAULT_TOKEN>"
+vault policy write -tls-skip-verify initiator-services cluster/policies/initiator-services-${ENV}.hcl
+vault token create -tls-skip-verify -period=8760h -policy=initiator-services -explicit-max-ttl=8760h
+kubectl create secret generic initiatorservices --from-literal=token=$TOKEN
 ```
 
+
+##### Vault Secret setup
 
 Create a new KV keystore version 2 called *secrets*
 
@@ -57,4 +69,13 @@ is 'dev' for Development or 'prod' for Production. The secret should then contai
   "workflow.support.url": "https://supporting-services.default.svc.cluster.local",
   "workflowApi.url": "https://engine.pi.talos.rocks"
 }
+```
+
+
+##### Deploy the config service
+
+Install the config service to the cluster
+
+```bash
+helm -n vault install configservice helm/configservice
 ```

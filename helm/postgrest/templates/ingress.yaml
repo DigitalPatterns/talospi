@@ -1,3 +1,4 @@
+{{- if eq .Values.postgrest.ingress.class "nginx"}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -29,3 +30,21 @@ spec:
     - hosts:
         - {{ .Values.postgrest.ingress.name }}
       secretName: {{ include "postgrest.fullname" . }}-ext-cert
+{{- else }}
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ include "postgrest.fullname" . }}
+  namespace: {{ .Values.postgrest.namespace }}
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`{{ .Values.postgrest.ingress.name }}`)
+      services:
+        - name: {{ include "postgrest.fullname" . }}
+          port: {{ .Values.postgrest.service.port }}
+  tls:
+    secretName: {{ include "postgrest.fullname" . }}-ext-cert
+{{- end }}

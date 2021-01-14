@@ -1,0 +1,58 @@
+clusterDomain: cluster.local
+## Optionally override the fully qualified name
+# fullnameOverride: workflowservice
+# nameOverride: workflowservice
+
+cubejsbackend:
+  replicas: 1
+
+  image:
+    repository: digitalpatterns/talos-cubejs-backend
+    # Overrides the image tag whose default is the chart version.
+    tag: ""
+    pullPolicy: Always
+  domainname: example.com
+  configservice:
+    url: https://configservice.default.svc.cluster.local
+    token: xxx
+  profile: dev
+
+  traefik:
+    image:
+      repository: traefik
+      tag: latest
+
+  restartPolicy: Always
+
+  securityContext:
+    fsGroup: 1000
+
+  containerSecurityContext:
+    runAsUser: 1000
+    runAsNonRoot: true
+
+  podLabels: {}
+  podAnnotations: {}
+
+  resources:
+    requests:
+      memory: "1024Mi"
+      cpu: "1000m"
+    limits:
+      memory: "1024Mi"
+      cpu: "1000m"
+
+  ## Extra annotations to be added to statefulset
+  deploymenttAnnotations: {}
+
+  service:
+    annotations: {}
+    labels: {}
+    issuerRef:
+      name: vault-issuer
+      kind: Issuer
+
+  ingress:
+    enabled: false
+    annotations: {}
+    labels: {}

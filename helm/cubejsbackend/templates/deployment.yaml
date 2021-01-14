@@ -1,0 +1,124 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "cubejsbackend.fullname" . }}
+  {{- if .Values.cubejsbackend.deploymenttAnnotations }}
+  annotations:
+    {{- with .Values.cubejsbackend.deploymenttAnnotations }}
+      {{- range $key, $value := . }}
+      {{- printf "%s: %s" $key (tpl $value $ | quote) | nindent 4 }}
+      {{- end }}
+      {{- end }}
+  {{- end }}
+  labels:
+    {{- include "cubejsbackend.commonLabels" . | nindent 4 }}
+    service: {{ include "cubejsbackend.fullname" . }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "cubejsbackend.selectorLabels" . | nindent 6 }}
+  replicas: {{ .Values.cubejsbackend.replicas }}
+  revisionHistoryLimit: 3
+  minReadySeconds: 5
+  strategy:
+    # indicate which strategy we want for rolling update
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        name: {{ include "cubejsbackend.fullname" . }}
+        service: {{ include "cubejsbackend.fullname" . }}
+        {{- include "cubejsbackend.selectorLabels" . | nindent 8 }}
+          {{- with .Values.cubejsbackend.podLabels }}
+          {{- toYaml . | nindent 8 }}
+          {{- end }}
+      annotations:
+        {{- with .Values.cubejsbackend.podAnnotations }}
+        {{- range $key, $value := . }}
+        {{- printf "%s: %s" $key (tpl $value $ | quote) | nindent 8 }}
+        {{- end }}
+        {{- end }}
+    spec:
+      restartPolicy: {{ .Values.cubejsbackend.restartPolicy }}
+      securityContext:
+        {{- toYaml .Values.cubejsbackend.securityContext | nindent 8 }}
+      containers:
+      - name: proxy
+        image: "{{ .Values.cubejsbackend.traefik.image.repository }}:{{ .Values.cubejsbackend.traefik.image.tag }}"
+        imagePullPolicy: Always
+        securityContext:
+          runAsNonRoot: false
+          capabilities:
+            drop:
+              - SETUID
+              - SETGID
+        resources:
+          limits:
+            memory: "100Mi"
+            cpu: "100m"
+          requests:
+            memory: "50Mi"
+            cpu: "100m"
+        ports:
+          - name: https
+            containerPort: 10443
+        volumeMounts:
+          - name: certs
+            mountPath: /certs
+          - name: traefik
+            mountPath: /etc/traefik
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.cubejsbackend.image.repository }}:{{ .Values.cubejsbackend.image.tag }}"
+        imagePullPolicy: {{ .Values.cubejsbackend.image.pullPolicy }}
+        securityContext:
+          {{- toYaml .Values.cubejsbackend.containerSecurityContext | nindent 12 }}
+        {{- with .Values.cubejsbackend.lifecycleHooks }}
+        lifecycle:
+          {{- tpl . $ | nindent 12 }}
+        {{- end }}
+        env:
+          - name: CONFIG_SERVER_URL
+            value: {{ .Values.cubejsbackend.configservice.url | quote }}
+          - name: CONFIG_SERVER_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "cubejsbackend.fullname" . }}
+                key: configServiceToken
+          - name: PROFILE
+            value: {{ .Values.cubejsbackend.profile | quote }}
+        ports:
+          - name: tcp
+            containerPort: 4001
+            protocol: TCP
+#        livenessProbe:
+#          httpGet:
+#            scheme: HTTPS
+#            path: /actuator/health
+#            port: 4001
+#          initialDelaySeconds: 180
+#          timeoutSeconds: 5
+#        readinessProbe:
+#          httpGet:
+#            scheme: HTTPS
+#            path: /actuator/info
+#            port: 4001
+#          initialDelaySeconds: 120
+#          timeoutSeconds: 1
+        resources:
+          {{- toYaml .Values.cubejsbackend.resources | nindent 12 }}
+        volumeMounts:
+          - name: certs
+            mountPath: /certs
+            readOnly: true
+      volumes:
+        - name: certs
+          secret:
+            secretName: {{ include "cubejsbackend.fullname" . }}-pod-cert
+        - name: traefik
+          configMap:
+            name: {{ include "cubejsbackend.fullname" . }}
+      imagePullSecrets:
+        - name: regcred
