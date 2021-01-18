@@ -59,14 +59,20 @@ fileuploadservice:
   ## Extra annotations to be added to statefulset
   deploymenttAnnotations: {}
 
+
   service:
     annotations: {}
     labels: {}
+    port: 8181
+    protocol: TCP
+    targetPort: 8181
     issuerRef:
       name: vault-issuer
-      kind: Issuer
+      kind: ClusterIssuer
+    issuerRefExt:
+      name: vault-issuer-ext
+      kind: ClusterIssuer
 
   ingress:
-    enabled: false
-    annotations: {}
-    labels: {}
+    name: fileuploadservice.pi.talos.rocks
+    class: nginx

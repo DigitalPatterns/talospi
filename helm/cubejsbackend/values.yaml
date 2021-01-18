@@ -41,9 +41,9 @@ cubejsbackend:
   service:
     annotations: {}
     labels: {}
-    port: 8181
+    port: 4001
     protocol: TCP
-    targetPort: 8181
+    targetPort: 4001
     issuerRef:
       name: vault-issuer
       kind: ClusterIssuer
