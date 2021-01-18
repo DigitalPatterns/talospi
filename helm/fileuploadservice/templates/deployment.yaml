@@ -1,0 +1,170 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "fileuploadservice.fullname" . }}
+  {{- if .Values.fileuploadservice.deploymenttAnnotations }}
+  annotations:
+    {{- with .Values.fileuploadservice.deploymenttAnnotations }}
+      {{- range $key, $value := . }}
+      {{- printf "%s: %s" $key (tpl $value $ | quote) | nindent 4 }}
+      {{- end }}
+      {{- end }}
+  {{- end }}
+  labels:
+    {{- include "fileuploadservice.commonLabels" . | nindent 4 }}
+    service: {{ include "fileuploadservice.fullname" . }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "fileuploadservice.selectorLabels" . | nindent 6 }}
+  replicas: {{ .Values.fileuploadservice.replicas }}
+  revisionHistoryLimit: 3
+  minReadySeconds: 5
+  strategy:
+    # indicate which strategy we want for rolling update
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        name: {{ include "fileuploadservice.fullname" . }}
+        service: {{ include "fileuploadservice.fullname" . }}
+        {{- include "fileuploadservice.selectorLabels" . | nindent 8 }}
+          {{- with .Values.fileuploadservice.podLabels }}
+          {{- toYaml . | nindent 8 }}
+          {{- end }}
+      annotations:
+        {{- with .Values.fileuploadservice.podAnnotations }}
+        {{- range $key, $value := . }}
+        {{- printf "%s: %s" $key (tpl $value $ | quote) | nindent 8 }}
+        {{- end }}
+        {{- end }}
+    spec:
+      restartPolicy: {{ .Values.fileuploadservice.restartPolicy }}
+      securityContext:
+        {{- toYaml .Values.fileuploadservice.securityContext | nindent 8 }}
+      initContainers:
+        # Since k8s 1.9.4, config maps mount read-only volumes. Since the Docker image also writes to the config file,
+        # the file must be mounted as read-write. We use init containers to copy from the config map read-only
+        # path, to a read-write path
+      - name: "tls-setup"
+        image: busybox:1.32.0
+        volumeMounts:
+          - name: certificates
+            mountPath: /certificates
+          - name: ca
+            mountPath: /ca
+          - name: certs
+            mountPath: /certs
+        command:
+          - sh
+          - -c
+          - cp /certs/tls.crt /certificates/tls.crt;
+            printf "\n" >> /certificates/tls.crt;
+            echo -en "$(cat /ca/ca.crt)" >> /certificates/tls.crt;
+            echo -en "$(cat /certs/tls.key)" >> /certificates/tls.key;
+            cp /ca/ca.crt /certificates/ca.crt;
+            chown 1000 /certificates/*;
+            chmod 0400 /certificates/*;
+      containers:
+      - name: clamav
+        image: quay.io/ukhomeofficedigital/clamav:v0.101.3
+        ports:
+          - containerPort: 3310
+        resources:
+          requests:
+            memory: "2048M"
+            cpu: "1"
+          limits:
+            memory: "4096M"
+            cpu: "1"
+      - name: clamav-api
+        image: quay.io/ukhomeofficedigital/docker-clamav-rest:1.0.0
+        ports:
+          - containerPort: 8080
+        env:
+          - name: CLAMD_HOST
+            value: localhost
+        resources:
+          requests:
+            memory: "2048M"
+            cpu: "1"
+          limits:
+            memory: "4096M"
+            cpu: "1"
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.fileuploadservice.image.repository }}:{{ .Values.fileuploadservice.image.tag }}"
+        imagePullPolicy: {{ .Values.fileuploadservice.image.pullPolicy }}
+        securityContext:
+          {{- toYaml .Values.fileuploadservice.containerSecurityContext | nindent 12 }}
+        {{- with .Values.fileuploadservice.lifecycleHooks }}
+        lifecycle:
+          {{- tpl . $ | nindent 12 }}
+        {{- end }}
+        env:
+          - name: VIRUS_SCAN_HOST
+            value: localhost
+          - name: AUTH_CLIENT_ID
+            value: {{ .Values.fileuploadservice.keycloak.clientId | quote }}
+          - name: AUTH_URL
+            value: {{ .Values.fileuploadservice.keycloak.uri | quote }}
+          - name: AUTH_REALM
+            value: {{ .Values.fileuploadservice.keycloak.realm | quote }}
+          - name: AWS_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "fileuploadservice.fullname" . }}
+                key: awsAccessKeyId
+          - name: AWS_BUCKET
+            value: {{ .Values.fileuploadservice.aws.bucketname | quote }}
+          - name: AWS_REGION
+            value: {{ .Values.fileuploadservice.aws.region | quote }}
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "fileuploadservice.fullname" . }}
+                key: awsSecretAccessKey
+          - name: FILE_UPLOAD_SERVICE_URL
+            value: {{ .Values.fileuploadservice.url | quote }}
+          - name: PROTOCOL
+            value: "https://"
+          - name: FILE_UPLOAD_SERVICE_LOG_LEVEL
+            value: {{ .Values.fileuploadservice.logLevel | quote }}
+          - name: NODE_EXTRA_CA_CERTS
+            value: "/etc/ssl/certs/ca-certificates.crt"
+        ports:
+          - name: http
+            containerPort: 8181
+            protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8181
+          initialDelaySeconds: 30
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /readiness
+            port: 8181
+          initialDelaySeconds: 30
+          timeoutSeconds: 1
+        resources:
+          {{- toYaml .Values.fileuploadservice.resources | nindent 12 }}
+        volumeMounts:
+          - name: certificates
+            mountPath: /certs
+            readOnly: true
+          - name: ca
+            mountPath: /ca
+            readOnly: true
+      volumes:
+        - name: certs
+          secret:
+            secretName: {{ include "fileuploadservice.fullname" . }}-pod-cert
+        - name: ca
+          secret:
+            secretName: ca
+        - name: certificates
+          emptyDir: {}

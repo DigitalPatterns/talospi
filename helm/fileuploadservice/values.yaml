@@ -1,0 +1,72 @@
+clusterDomain: cluster.local
+
+## Optionally override the fully qualified name
+# fullnameOverride: fileuploadservice
+
+## Optionally override the name
+# nameOverride: fileuploadservice
+
+fileuploadservice:
+  replicas: 1
+
+  image:
+    repository: digitalpatterns/file-upload-service
+    # Overrides the image tag whose default is the chart version.
+    tag: latest
+    pullPolicy: Always
+
+  port: 8181
+  logLevel: debug
+  url: xxx
+
+  nginx:
+    image:
+      repository: quay.io/ukhomeofficedigital/nginx-proxy
+      tag: latest
+
+  aws:
+    region: eu-west-2
+    bucketname: zzz
+    accessKey: zzz
+    secretKey: zzz
+
+  keycloak:
+    uri: zzz
+    clientId: zzz
+    realm: zzz
+
+  restartPolicy: Always
+
+  securityContext:
+    fsGroup: 1000
+
+  containerSecurityContext:
+    runAsUser: 1000
+    runAsNonRoot: true
+
+  podLabels: {}
+  podAnnotations: {}
+
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "2048Mi"
+      cpu: "2000m"
+
+
+  ## Extra annotations to be added to statefulset
+  deploymenttAnnotations: {}
+
+  service:
+    annotations: {}
+    labels: {}
+    issuerRef:
+      name: vault-issuer
+      kind: Issuer
+
+  ingress:
+    enabled: false
+    annotations: {}
+    labels: {}

@@ -1,8 +1,8 @@
-{{- $service := .Values.cubejsbackend.service -}}
+{{- $service := .Values.fileuploadservice.service -}}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "cubejsbackend.fullname" . }}
+  name: {{ include "fileuploadservice.fullname" . }}
   {{- with $service.annotations }}
   annotations:
     {{- range $key, $value := . }}
@@ -10,15 +10,16 @@ metadata:
       {{- end }}
       {{- end }}
   labels:
-    {{- include "cubejsbackend.commonLabels" . | nindent 4 }}
+    {{- include "fileuploadservice.commonLabels" . | nindent 4 }}
       {{- with $service.labels }}
       {{- toYaml . | nindent 4 }}
       {{- end }}
 spec:
   type: ClusterIP
   ports:
-    - port: {{ $service.port }}
-      targetPort: {{ $service.targetPort }}
-      protocol: {{ $service.protocol }}
+    - name: http
+      port: 80
+      targetPort: 10443
+      protocol: TCP
   selector:
-    {{- include "cubejsbackend.selectorLabels" . | nindent 4 }}
+    {{- include "fileuploadservice.selectorLabels" . | nindent 4 }}

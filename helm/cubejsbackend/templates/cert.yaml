@@ -1,10 +1,10 @@
-{{- $service := .Values.configservice.service -}}
+{{- $service := .Values.cubejsbackend.service -}}
 apiVersion: cert-manager.io/v1alpha2
 kind: Certificate
 metadata:
-  name: {{ include "configservice.fullname" . }}-pod-cert
+  name: {{ include "cubejsbackend.fullname" . }}-pod-cert
 spec:
-  secretName: {{ include "configservice.fullname" . }}-pod-cert
+  secretName: {{ include "cubejsbackend.fullname" . }}-pod-cert
   duration: 2160h # 90d
   renewBefore: 360h # 15d
   isCA: false
@@ -18,10 +18,10 @@ spec:
     - server auth
     - client auth
   dnsNames:
-    - {{ include "configservice.fullname" . }}
-    - {{ include "configservice.fullname" . }}.{{ .Values.configservice.namespace }}
-    - {{ include "configservice.fullname" . }}.{{ .Values.configservice.namespace }}.svc
-    - {{ include "configservice.fullname" . }}.{{ .Values.configservice.namespace }}.svc.cluster.local
+    - {{ include "cubejsbackend.fullname" . }}
+    - {{ include "cubejsbackend.fullname" . }}.{{ .Values.cubejsbackend.namespace }}
+    - {{ include "cubejsbackend.fullname" . }}.{{ .Values.cubejsbackend.namespace }}.svc
+    - {{ include "cubejsbackend.fullname" . }}.{{ .Values.cubejsbackend.namespace }}.svc.cluster.local
     - localhost
   ipAddresses:
     - 127.0.0.1
