@@ -1,5 +1,5 @@
 {{- if eq .Values.postgrest.ingress.class "nginx"}}
-apiVersion: networking.k8s.io/v1
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   annotations:
@@ -30,7 +30,7 @@ spec:
     - hosts:
         - {{ .Values.postgrest.ingress.name }}
       secretName: {{ include "postgrest.fullname" . }}-ext-cert
-{{- else }}
+  {{- else }}
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
@@ -47,4 +47,4 @@ spec:
           port: {{ .Values.postgrest.service.port }}
   tls:
     secretName: {{ include "postgrest.fullname" . }}-ext-cert
-{{- end }}
+  {{- end }}

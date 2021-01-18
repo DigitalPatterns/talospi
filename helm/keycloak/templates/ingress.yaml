@@ -1,4 +1,5 @@
-apiVersion: networking.k8s.io/v1
+{{- if eq .Values.keycloak.ingress.class "nginx"}}
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   annotations:
@@ -7,6 +8,9 @@ metadata:
     nginx.ingress.kubernetes.io/backend-protocol: http
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: 400m
+    nginx.ingress.kubernetes.io/proxy-read-timeout: 120s
+    nginx.ingress.kubernetes.io/proxy-send-timeout: 120s
   namespace: {{ .Values.keycloak.namespace }}
   name: {{ include "keycloak.fullname" . }}
 spec:
@@ -26,3 +30,21 @@ spec:
     - hosts:
         - {{ .Values.keycloak.ingress.name }}
       secretName: {{ include "keycloak.fullname" . }}-ext-cert
+  {{- else }}
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ include "keycloak.fullname" . }}
+  namespace: {{ .Values.keycloak.namespace }}
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`{{ .Values.keycloak.ingress.name }}`)
+      services:
+        - name: {{ include "keycloak.fullname" . }}
+          port: {{ .Values.keycloak.service.port }}
+  tls:
+    secretName: {{ include "keycloak.fullname" . }}-ext-cert
+{{- end }}

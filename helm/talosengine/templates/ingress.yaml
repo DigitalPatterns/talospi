@@ -1,13 +1,16 @@
-apiVersion: networking.k8s.io/v1
+{{- if eq .Values.talosengine.ingress.class "nginx"}}
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   annotations:
     kubernetes.io/ingress.class: {{ .Values.talosengine.ingress.class }}
     ingress.kubernetes.io/protocol: https
-    kubernetes.io/ingress.class: nginx
     nginx.ingress.kubernetes.io/backend-protocol: https
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: 400m
+    nginx.ingress.kubernetes.io/proxy-read-timeout: 120s
+    nginx.ingress.kubernetes.io/proxy-send-timeout: 120s
   namespace: {{ .Values.talosengine.namespace }}
   name: {{ include "talosengine.fullname" . }}
 spec:
@@ -27,3 +30,21 @@ spec:
     - hosts:
         - {{ .Values.talosengine.ingress.name }}
       secretName: {{ include "talosengine.fullname" . }}-ext-cert
+  {{- else }}
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ include "talosengine.fullname" . }}
+  namespace: {{ .Values.talosengine.namespace }}
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`{{ .Values.talosengine.ingress.name }}`)
+      services:
+        - name: {{ include "talosengine.fullname" . }}
+          port: {{ .Values.talosengine.service.port }}
+  tls:
+    secretName: {{ include "talosengine.fullname" . }}-ext-cert
+  {{- end }}
