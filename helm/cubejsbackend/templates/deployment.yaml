@@ -45,31 +45,31 @@ spec:
       restartPolicy: {{ .Values.cubejsbackend.restartPolicy }}
       securityContext:
         {{- toYaml .Values.cubejsbackend.securityContext | nindent 8 }}
+
+      initContainers:
+        # Since k8s 1.9.4, config maps mount read-only volumes. Since the Docker image also writes to the config file,
+        # the file must be mounted as read-write. We use init containers to copy from the config map read-only
+        # path, to a read-write path
+        - name: "tls-setup"
+          image: busybox:1.32.0
+          volumeMounts:
+            - name: certificates
+              mountPath: /certificates
+            - name: ca
+              mountPath: /ca
+            - name: certs
+              mountPath: /certs
+          command:
+            - sh
+            - -c
+            - cp /certs/tls.crt /certificates/tls.crt;
+              printf "\n" >> /certificates/tls.crt;
+              echo -en "$(cat /ca/ca.crt)" >> /certificates/tls.crt;
+              echo -en "$(cat /certs/tls.key)" >> /certificates/tls.key;
+              cp /ca/ca.crt /certificates/ca.crt;
+              chown 1000 /certificates/*;
+              chmod 0400 /certificates/*;
       containers:
-      - name: proxy
-        image: "{{ .Values.cubejsbackend.traefik.image.repository }}:{{ .Values.cubejsbackend.traefik.image.tag }}"
-        imagePullPolicy: Always
-        securityContext:
-          runAsNonRoot: false
-          capabilities:
-            drop:
-              - SETUID
-              - SETGID
-        resources:
-          limits:
-            memory: "100Mi"
-            cpu: "100m"
-          requests:
-            memory: "50Mi"
-            cpu: "100m"
-        ports:
-          - name: https
-            containerPort: 10443
-        volumeMounts:
-          - name: certs
-            mountPath: /certs
-          - name: traefik
-            mountPath: /etc/traefik
       - name: {{ .Chart.Name }}
         image: "{{ .Values.cubejsbackend.image.repository }}:{{ .Values.cubejsbackend.image.tag }}"
         imagePullPolicy: {{ .Values.cubejsbackend.image.pullPolicy }}
@@ -86,9 +86,11 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: {{ include "cubejsbackend.fullname" . }}
-                key: configServiceToken
+                key: token
           - name: PROFILE
             value: {{ .Values.cubejsbackend.profile | quote }}
+          - name: NODE_EXTRA_CA_CERTS
+            value: "/etc/ssl/certs/ca-certificates.crt"
         ports:
           - name: tcp
             containerPort: 4001
@@ -110,15 +112,20 @@ spec:
         resources:
           {{- toYaml .Values.cubejsbackend.resources | nindent 12 }}
         volumeMounts:
-          - name: certs
+          - name: certificates
             mountPath: /certs
+            readOnly: true
+          - name: ca
+            mountPath: /ca
             readOnly: true
       volumes:
         - name: certs
           secret:
             secretName: {{ include "cubejsbackend.fullname" . }}-pod-cert
-        - name: traefik
-          configMap:
-            name: {{ include "cubejsbackend.fullname" . }}
+        - name: ca
+          secret:
+            secretName: ca
+        - name: certificates
+          emptyDir: {}
       imagePullSecrets:
         - name: regcred

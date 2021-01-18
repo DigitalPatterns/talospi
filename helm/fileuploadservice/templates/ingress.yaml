@@ -1,0 +1,50 @@
+{{- if eq .Values.fileuploadservice.ingress.class "nginx"}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: {{ .Values.fileuploadservice.ingress.class }}
+    ingress.kubernetes.io/protocol: http
+    nginx.ingress.kubernetes.io/backend-protocol: http
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: 400m
+    nginx.ingress.kubernetes.io/proxy-read-timeout: 120s
+    nginx.ingress.kubernetes.io/proxy-send-timeout: 120s
+  namespace: {{ .Values.fileuploadservice.namespace }}
+  name: {{ include "fileuploadservice.fullname" . }}
+spec:
+  rules:
+    - host: {{ .Values.fileuploadservice.ingress.name }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "fileuploadservice.fullname" . }}
+                port:
+                  number: {{ .Values.fileuploadservice.service.port }}
+  # This section is only required if TLS is to be enabled for the Ingress
+  tls:
+    - hosts:
+        - {{ .Values.fileuploadservice.ingress.name }}
+      secretName: {{ include "fileuploadservice.fullname" . }}-ext-cert
+  {{- else }}
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ include "fileuploadservice.fullname" . }}
+  namespace: {{ .Values.fileuploadservice.namespace }}
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`{{ .Values.fileuploadservice.ingress.name }}`)
+      services:
+        - name: {{ include "fileuploadservice.fullname" . }}
+          port: {{ .Values.fileuploadservice.service.port }}
+  tls:
+    secretName: {{ include "fileuploadservice.fullname" . }}-ext-cert
+  {{- end }}
