@@ -1,28 +1,50 @@
+{{- if eq .Values.prestosql.ingress.class "nginx"}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
-    kubernetes.io/ingress.class: {{ .Values.presto.ingress.class }}
+    kubernetes.io/ingress.class: {{ .Values.prestosql.ingress.class }}
     ingress.kubernetes.io/protocol: http
     nginx.ingress.kubernetes.io/backend-protocol: http
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
-  namespace: {{ .Values.presto.namespace }}
-  name: {{ include "presto.fullname" . }}
+    nginx.ingress.kubernetes.io/proxy-body-size: 400m
+    nginx.ingress.kubernetes.io/proxy-read-timeout: 120s
+    nginx.ingress.kubernetes.io/proxy-send-timeout: 120s
+  namespace: {{ .Values.prestosql.namespace }}
+  name: {{ include "prestosql.fullname" . }}
 spec:
   rules:
-    - host: {{ .Values.presto.ingress.name }}
+    - host: {{ .Values.prestosql.ingress.name }}
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: {{ include "presto.fullname" . }}-coordinator
+                name: {{ include "prestosql.fullname" . }}
                 port:
-                  number: {{ .Values.presto.service.port }}
+                  number: {{ .Values.prestosql.service.port }}
   # This section is only required if TLS is to be enabled for the Ingress
   tls:
     - hosts:
-        - {{ .Values.presto.ingress.name }}
-      secretName: {{ include "presto.fullname" . }}-ext-cert
+        - {{ .Values.prestosql.ingress.name }}
+      secretName: {{ include "prestosql.fullname" . }}-ext-cert
+  {{- else }}
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ include "prestosql.fullname" . }}
+  namespace: {{ .Values.prestosql.namespace }}
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`{{ .Values.prestosql.ingress.name }}`)
+      services:
+        - name: {{ include "prestosql.fullname" . }}
+          port: {{ .Values.prestosql.service.port }}
+  tls:
+    secretName: {{ include "prestosql.fullname" . }}-ext-cert
+  {{- end }}
