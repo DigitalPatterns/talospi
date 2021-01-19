@@ -1,3 +1,4 @@
+{{- if eq .Values.presto.ingress.class "nginx"}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -7,6 +8,9 @@ metadata:
     nginx.ingress.kubernetes.io/backend-protocol: http
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: 400m
+    nginx.ingress.kubernetes.io/proxy-read-timeout: 120s
+    nginx.ingress.kubernetes.io/proxy-send-timeout: 120s
   namespace: {{ .Values.presto.namespace }}
   name: {{ include "presto.fullname" . }}
 spec:
@@ -18,7 +22,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ include "presto.fullname" . }}-coordinator
+                name: {{ include "presto.fullname" . }}
                 port:
                   number: {{ .Values.presto.service.port }}
   # This section is only required if TLS is to be enabled for the Ingress
@@ -26,3 +30,21 @@ spec:
     - hosts:
         - {{ .Values.presto.ingress.name }}
       secretName: {{ include "presto.fullname" . }}-ext-cert
+  {{- else }}
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ include "presto.fullname" . }}
+  namespace: {{ .Values.presto.namespace }}
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`{{ .Values.presto.ingress.name }}`)
+      services:
+        - name: {{ include "presto.fullname" . }}
+          port: {{ .Values.presto.service.port }}
+  tls:
+    secretName: {{ include "presto.fullname" . }}-ext-cert
+  {{- end }}
