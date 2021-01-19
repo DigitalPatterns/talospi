@@ -8,7 +8,7 @@ clusterDomain: cluster.local
 
 fileuploadservice:
   replicas: 1
-
+  namespace: default
   image:
     repository: digitalpatterns/file-upload-service
     # Overrides the image tag whose default is the chart version.
@@ -49,11 +49,11 @@ fileuploadservice:
 
   resources:
     requests:
-      memory: "512Mi"
-      cpu: "500m"
+      memory: "307Mi"
+      cpu: "300m"
     limits:
-      memory: "2048Mi"
-      cpu: "2000m"
+      memory: "1536Mi"
+      cpu: "1500m"
 
 
   ## Extra annotations to be added to statefulset

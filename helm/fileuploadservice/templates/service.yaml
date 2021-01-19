@@ -17,9 +17,8 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-    - name: http
-      port: 80
-      targetPort: 10443
-      protocol: TCP
+    - port: {{ $service.port }}
+      targetPort: {{ $service.targetPort }}
+      protocol: {{ $service.protocol }}
   selector:
     {{- include "fileuploadservice.selectorLabels" . | nindent 4 }}
