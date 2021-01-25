@@ -7,7 +7,8 @@ We use a clustered secure instance of MongoDB to store most of our data, to enab
 
 Create an admin user password and load this as a k8s secret
 ```bash
-kubectl -n databases create secret generic mongodb --from-literal=password=MONGO
+echo -n $( LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 25) > tmp/mongo.password
+kubectl -n databases create secret generic mongodb --from-file=password=./tmp/mongo.password
 ```
 
 
@@ -17,8 +18,8 @@ To enable each of the nodes to securely talk to each other we need to give them 
 the following commands. The first creates a secure key, the second uploads this as a k8s secret.
 
 ```bash
-echo "- $(openssl rand -base64 756 | tr -d '\n')" > mongo.key
-kubectl -n databases create secret generic mongo-keyfile --from-file=mongo.key=mongo.key
+echo -n "- $(openssl rand -base64 756 | tr -d '\n')" > tmp/mongo.key
+kubectl -n databases create secret generic mongo-keyfile --from-file=mongo.key=./tmp/mongo.key
 ```
 
 

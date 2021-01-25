@@ -6,7 +6,7 @@
 Enter the postgres pod using the command below then enter the SQL commands to create the database, user and grant the 
 user permissions.
 
-`kubectl -n databases exec -it postgresql-0 sh`
+`kubectl -n databases exec -it postgresql-0 -- psql`
 
 Then execute the following SQL commands:
 
