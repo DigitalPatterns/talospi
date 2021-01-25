@@ -21,9 +21,9 @@ Replace *<VAULT_TOKEN>* with the root vault token. `export ENV=dev` Where the en
 kubectl -n vault port-forward service/vault 8200:8200
 export VAULT_ADDR="https://127.0.0.1:8200"
 export VAULT_TOKEN="<VAULT_TOKEN>"
-vault policy write -tls-skip-verify initiator-services cluster/policies/initiator-services-${ENV}.hcl
-vault token create -tls-skip-verify -period=8760h -policy=initiator-services -explicit-max-ttl=8760h
-kubectl create secret generic initiatorservices --from-literal=token=$TOKEN
+vault policy write -tls-skip-verify config-server cluster/policies/config-server-${ENV}.hcl
+vault token create -tls-skip-verify -period=8760h -policy=config-server -explicit-max-ttl=8760h
+kubectl -n vault create secret generic config-server --from-literal=token=$TOKEN
 ```
 
 
