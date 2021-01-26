@@ -21,5 +21,3 @@ spec:
   commonName: "{{ .Values.talosui.ingress.name }}"
   dnsNames:
     - {{ .Values.talosui.ingress.name }}
-  ipAddresses:
-    - 127.0.0.1

@@ -8,8 +8,8 @@ metadata:
 data:
   mongodb.properties: |
     connector.name=mongodb
-    mongodb.seeds=mongodb-0.mongodb.default.svc.cluster.local,mongodb-1.mongodb.default.svc.cluster.local,mongodb-2.mongodb.default.svc.cluster.local
-    mongodb.credentials=camundaAdmin:FSPaFZ47HtXAyYZQmbtK3m2fnrndh7PU@admin
+    mongodb.seeds=mongodb-0.mongodb.databases.svc.cluster.local,mongodb-1.mongodb.databases.svc.cluster.local,mongodb-2.mongodb.databases.svc.cluster.local
+    mongodb.credentials={{ .Values.presto.mongodb.credentials }}
     mongodb.ssl.enabled=false
     mongodb.required-replica-set=rs0
     mongodb.schema-collection=presto_schema

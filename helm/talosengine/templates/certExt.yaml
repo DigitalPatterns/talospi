@@ -21,5 +21,3 @@ spec:
   commonName: "{{ .Values.talosengine.ingress.name }}"
   dnsNames:
     - {{ .Values.talosengine.ingress.name }}
-  ipAddresses:
-    - 127.0.0.1

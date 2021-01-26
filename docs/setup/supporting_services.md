@@ -115,7 +115,7 @@ In Vault two sets of secrets are required. The application will read most of the
 [talos_config](talos_config.md)
 
 In addition, you need to create a new secret in the secrets key value store under the path
-*talos-engine/$ENV* 
+*talos-support/$ENV* 
 
 [https://localhost:8200/ui/vault/secrets/secret/list](https://localhost:8200/ui/vault/secrets/secret/list)
 

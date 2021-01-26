@@ -1,0 +1,29 @@
+apiVersion: rabbitmq.com/v1beta1
+kind: RabbitmqCluster
+metadata:
+  name: rabbitmq
+spec:
+  tls:
+    secretName: rabbitmq-pod-cert
+    caSecretName: ca
+  replicas: 3
+  resources:
+    requests:
+      cpu: 1
+      memory: 1Gi
+    limits:
+      cpu: 2
+      memory: 2Gi
+  rabbitmq:
+    additionalPlugins:
+      - rabbitmq_peer_discovery_k8s
+      - rabbitmq_management
+      - rabbitmq_prometheus
+      - rabbitmq_mqtt
+    additionalConfig: |
+      cluster_partition_handling = pause_minority
+      vm_memory_high_watermark_paging_ratio = 0.99
+      disk_free_limit.relative = 1.0
+  persistence:
+    storageClassName: longhorn
+    storage: "10Gi"

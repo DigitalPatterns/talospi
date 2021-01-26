@@ -21,5 +21,3 @@ spec:
   commonName: "{{ .Values.cubejsbackend.ingress.name }}"
   dnsNames:
     - {{ .Values.cubejsbackend.ingress.name }}
-  ipAddresses:
-    - 127.0.0.1

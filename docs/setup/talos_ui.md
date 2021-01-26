@@ -68,5 +68,5 @@ In addition, you need to create a new secret in the secrets key value store unde
 Install the UI to the cluster
 
 ```bash
-helm install talosui helm/talosengine
+helm install talosui helm/talosui
 ```

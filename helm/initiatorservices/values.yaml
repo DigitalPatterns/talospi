@@ -44,10 +44,3 @@ initiatorservices:
     issuerRef:
       name: vault-issuer
       kind: ClusterIssuer
-    issuerRefExt:
-      name: vault-issuer-ext
-      kind: ClusterIssuer
-
-  ingress:
-    name: initiatorservices.pi.talos.rocks
-    class: nginx

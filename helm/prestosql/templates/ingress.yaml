@@ -22,7 +22,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ include "presto.fullname" . }}
+                name: {{ include "presto.fullname" . }}-coordinator
                 port:
                   number: {{ .Values.presto.service.port }}
   # This section is only required if TLS is to be enabled for the Ingress
@@ -43,7 +43,7 @@ spec:
     - kind: Rule
       match: Host(`{{ .Values.presto.ingress.name }}`)
       services:
-        - name: {{ include "presto.fullname" . }}
+        - name: {{ include "presto.fullname" . }}-coordinator
           port: {{ .Values.presto.service.port }}
   tls:
     secretName: {{ include "presto.fullname" . }}-ext-cert

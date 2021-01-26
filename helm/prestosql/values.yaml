@@ -1,6 +1,8 @@
 presto:
   workers: 0
   namespace: databases
+  mongodb:
+    credentials: "camundaAdmin:PASSWORD@admin"
   node:
     environment: production
     dataDir: /data/presto

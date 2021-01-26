@@ -21,5 +21,3 @@ spec:
   commonName: "{{ .Values.formbuilder.ingress.name }}"
   dnsNames:
     - {{ .Values.formbuilder.ingress.name }}
-  ipAddresses:
-    - 127.0.0.1

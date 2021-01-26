@@ -21,5 +21,4 @@ spec:
   commonName: "{{ .Values.presto.ingress.name }}"
   dnsNames:
     - {{ .Values.presto.ingress.name }}
-  ipAddresses:
-    - 127.0.0.1
+
