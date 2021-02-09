@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "nlp.fullname" . }}
+  {{- if .Values.nlp.deploymenttAnnotations }}
+  annotations:
+    {{- with .Values.nlp.deploymenttAnnotations }}
+      {{- range $key, $value := . }}
+      {{- printf "%s: %s" $key (tpl $value $ | quote) | nindent 4 }}
+      {{- end }}
+      {{- end }}
+  {{- end }}
+  labels:
+    {{- include "nlp.commonLabels" . | nindent 4 }}
+    service: {{ include "nlp.fullname" . }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "nlp.selectorLabels" . | nindent 6 }}
+  replicas: {{ .Values.nlp.replicas }}
+  revisionHistoryLimit: 3
+  minReadySeconds: 5
+  strategy:
+    # indicate which strategy we want for rolling update
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        name: {{ include "nlp.fullname" . }}
+        service: {{ include "nlp.fullname" . }}
+        {{- include "nlp.selectorLabels" . | nindent 8 }}
+          {{- with .Values.nlp.podLabels }}
+          {{- toYaml . | nindent 8 }}
+          {{- end }}
+      annotations:
+        {{- with .Values.nlp.podAnnotations }}
+        {{- range $key, $value := . }}
+        {{- printf "%s: %s" $key (tpl $value $ | quote) | nindent 8 }}
+        {{- end }}
+        {{- end }}
+    spec:
+      restartPolicy: {{ .Values.nlp.restartPolicy }}
+      securityContext:
+        {{- toYaml .Values.nlp.securityContext | nindent 8 }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.nlp.image.repository }}:{{ .Values.nlp.image.tag }}"
+        imagePullPolicy: {{ .Values.nlp.image.pullPolicy }}
+        securityContext:
+          {{- toYaml .Values.nlp.containerSecurityContext | nindent 12 }}
+        {{- with .Values.nlp.lifecycleHooks }}
+        lifecycle:
+          {{- tpl . $ | nindent 12 }}
+        {{- end }}
+        ports:
+          - name: http
+            containerPort: {{ .Values.nlp.service.targetPort }}
+            protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: {{ .Values.nlp.service.targetPort }}
+          initialDelaySeconds: 30
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /readiness
+            port: {{ .Values.nlp.service.targetPort }}
+          initialDelaySeconds: 30
+          timeoutSeconds: 1
+        resources:
+          {{- toYaml .Values.nlp.resources | nindent 12 }}
+      imagePullSecrets:
+        - name: regcred

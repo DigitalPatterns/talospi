@@ -1,0 +1,50 @@
+{{- if eq .Values.nlp.ingress.class "nginx"}}
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: {{ .Values.nlp.ingress.class }}
+    ingress.kubernetes.io/protocol: http
+    nginx.ingress.kubernetes.io/backend-protocol: http
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: 400m
+    nginx.ingress.kubernetes.io/proxy-read-timeout: 120s
+    nginx.ingress.kubernetes.io/proxy-send-timeout: 120s
+  namespace: {{ .Values.nlp.namespace }}
+  name: {{ include "nlp.fullname" . }}
+spec:
+  rules:
+    - host: {{ .Values.nlp.ingress.name }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "nlp.fullname" . }}
+                port:
+                  number: {{ .Values.nlp.service.port }}
+  # This section is only required if TLS is to be enabled for the Ingress
+  tls:
+    - hosts:
+        - {{ .Values.nlp.ingress.name }}
+      secretName: {{ include "nlp.fullname" . }}-ext-cert
+  {{- else }}
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ include "nlp.fullname" . }}
+  namespace: {{ .Values.nlp.namespace }}
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`{{ .Values.nlp.ingress.name }}`)
+      services:
+        - name: {{ include "nlp.fullname" . }}
+          port: {{ .Values.nlp.service.port }}
+  tls:
+    secretName: {{ include "nlp.fullname" . }}-ext-cert
+  {{- end }}

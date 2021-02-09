@@ -1,0 +1,37 @@
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: minio-tls
+  namespace: minio
+spec:
+  secretName: minio-tls
+  duration: 2160h # 90d
+  renewBefore: 360h # 15d
+  isCA: false
+  keySize: 2048
+  keyAlgorithm: rsa
+  keyEncoding: pkcs1
+  issuerRef:
+    name: vault-issuer
+    kind: ClusterIssuer
+  usages:
+    - server auth
+    - client auth
+  commonName: "*.minio-hl.minio.svc.cluster.local"
+  dnsNames:
+    - minio-zone-0-0
+    - minio-zone-0-1
+    - minio-zone-0-2
+    - minio-zone-0-0.minio-hl
+    - minio-zone-0-1.minio-hl
+    - minio-zone-0-2.minio-hl
+    - minio-zone-0-0.minio-hl.minio
+    - minio-zone-0-1.minio-hl.minio
+    - minio-zone-0-2.minio-hl.minio
+    - minio-zone-0-0.minio-hl.minio.svc.cluster.local
+    - minio-zone-0-1.minio-hl.minio.svc.cluster.local
+    - minio-zone-0-2.minio-hl.minio.svc.cluster.local
+    - minio.minio.svc.cluster.local
+    - "*.minio-hl.minio.svc.cluster.local"
+    - "*.minio.svc.cluster.local"

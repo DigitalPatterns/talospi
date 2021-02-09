@@ -1,0 +1,65 @@
+clusterDomain: cluster.local
+
+## Optionally override the fully qualified name
+# fullnameOverride: formbuilder
+
+## Optionally override the name
+# nameOverride: formbuilder
+
+formbuilder:
+  replicas: 1
+
+  image:
+    repository: digitalpatterns/form-builder
+    # Overrides the image tag whose default is the chart version.
+    tag: "latest"
+    pullPolicy: Always
+
+  port: 8080
+
+  restartPolicy: Always
+
+  securityContext:
+    fsGroup: 1000
+
+  containerSecurityContext:
+    runAsUser: 1000
+    runAsNonRoot: true
+
+  ## The path formbuilder will be served from. To serve formbuilder from the root path, use two quotes (e.g. "").
+  basepath: ""
+
+  ## Additional arguments to start command e.g. -Dformbuilder.import= to load a realm
+  extraArgs: ""
+
+  podLabels: {}
+  podAnnotations: {}
+
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+
+  ## Extra annotations to be added to statefulset
+  deploymenttAnnotations: {}
+
+  service:
+    annotations: {}
+    labels: {}
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+    issuerRef:
+      name: vault-issuer
+      kind: ClusterIssuer
+    issuerRefExt:
+      name: vault-issuer-ext
+      kind: ClusterIssuer
+
+  ingress:
+    name: formbuilder.pi.talos.rocks
+    class: nginx

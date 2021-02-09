@@ -1,0 +1,65 @@
+clusterDomain: cluster.local
+
+nlp:
+  replicas: 1
+
+  image:
+    repository: digitalpatterns/talos-nlp
+    # Overrides the image tag whose default is the chart version.
+    tag: "latest"
+    pullPolicy: Always
+
+  logLevel: DEBUG
+  correlationIdRequestHeader: dev
+
+  businessKeyPrefix: TDev
+  db:
+    hostname: postgresql.databases.svc.cluster.local
+    username: "nlp"
+    name: "nlp"
+    port: "5432"
+    ssl: "prefer"
+
+  restartPolicy: Always
+
+  securityContext:
+    fsGroup: 1000
+
+  containerSecurityContext:
+    runAsUser: 1000
+    runAsNonRoot: true
+
+  ## The path nlp will be served from. To serve nlp from the root path, use two quotes (e.g. "").
+  basepath: ""
+
+  podLabels: {}
+  podAnnotations: {}
+
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "750m"
+
+
+  ## Extra annotations to be added to statefulset
+  deploymenttAnnotations: {}
+
+  service:
+    annotations: {}
+    labels: {}
+    port: 80
+    protocol: TCP
+    targetPort: 80
+    issuerRef:
+      name: vault-issuer
+      kind: ClusterIssuer
+    issuerRefExt:
+      name: vault-issuer-ext
+      kind: ClusterIssuer
+
+  ingress:
+    name: nlp.pi.talos.rocks
+    class: nginx
